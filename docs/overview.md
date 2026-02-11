@@ -28,6 +28,7 @@ dev-see provides a centralized, desktop-based solution where developers can:
 - Capture API requests and responses as they happen
 - Support for multiple connected apps simultaneously
 - Live updates as new API calls are made
+- **Extensible log types**: While Phase 1 focuses on API logs, the architecture supports future extensions for console logs, database queries, analytics events, performance metrics, and more
 
 ### Beautiful Data Visualization
 - Syntax-highlighted JSON viewer
