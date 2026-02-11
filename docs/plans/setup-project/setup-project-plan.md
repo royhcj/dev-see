@@ -122,9 +122,6 @@ dev-see/
 │       ├── package.json
 │       └── README.md
 │
-├── .github/
-│   └── workflows/               # CI/CD workflows (future)
-│
 ├── .gitignore
 ├── package.json                 # Root workspace
 ├── package-lock.json
@@ -165,7 +162,6 @@ dev-see/
    ```bash
    mkdir -p packages/{server,ui,tauri}
    mkdir -p docs/plans/setup-project
-   mkdir -p .github/workflows
    ```
 
 3. **Root .gitignore**
