@@ -1,139 +1,201 @@
-# dev-see Overview
+# dev-see Phase 1 Overview
 
-## What is dev-see?
+> Last updated: 2026-02-12
 
-**dev-see** is a desktop application designed to help developers debug and monitor API traffic from their mobile and cross-platform applications. It acts as a local debugging proxy that captures, logs, and beautifully displays HTTP requests and responses sent from iOS, Android, and Flutter apps during development.
+## Scope
 
-## Problem Statement
+**Phase 1 is a minimal viable product focused on a simple Mac desktop application.**
 
-When developing mobile applications, debugging API calls can be challenging:
-- Mobile device logs are cumbersome to access and read
-- Network traffic is difficult to inspect in real-time
-- JSON responses are hard to parse in raw log format
-- Comparing requests and responses across multiple API calls is tedious
-- Switching between device logs and development tools breaks flow
+This phase delivers the core debugging experience: a lightweight server that captures API logs and a beautiful UI to view them. No mobile SDKs, no embedded mode, no advanced features—just the essentials to prove the concept works.
 
-## Solution
+**Target**: Mac development environment only
 
-dev-see provides a centralized, desktop-based solution where developers can:
-- View all API traffic from their mobile apps in real-time
-- Inspect beautifully formatted JSON responses
-- Analyze request/response pairs side-by-side
-- Search and filter through API call history
-- Save and export API logs for later analysis
+---
 
-## Key Features
+## Goals
 
-### Real-time Logging
-- Capture API requests and responses as they happen
-- Support for multiple connected apps simultaneously
-- Live updates as new API calls are made
-- **Extensible log types**: While Phase 1 focuses on API logs, the architecture supports future extensions for console logs, database queries, analytics events, performance metrics, and more
+1. **Prove the concept** – Show that real-time API log viewing is useful
+2. **Build core infrastructure** – Establish patterns for server, UI, and data flow
+3. **Deliver value quickly** – Get a working tool in developers' hands within weeks
+4. **Foundation for growth** – Design architecture to support future platforms (iOS, Android, etc.)
 
-### Beautiful Data Visualization
-- Syntax-highlighted JSON viewer
-- Collapsible/expandable JSON tree structure
-- Request/response header inspection
-- HTTP status code highlighting
-- Timing and performance metrics
+---
 
-### Data Management
-- Persistent storage of API logs
-- Search and filter capabilities
-- Export logs in various formats (JSON, HAR, CSV)
-- Clear/delete logs as needed
+## Requirements
 
-### Developer Experience
-- Simple integration - minimal code changes to existing apps
-- Works with any HTTP client library
-- Cross-platform support (works with iOS, Android, Flutter)
-- Low overhead - minimal impact on app performance
+### Functional Requirements
 
-## How It Works
+#### 1. Server (Fastify)
+- Accept API logs via HTTP `POST /api/logs`
+- Stream live logs to connected UI via WebSocket `WS /ws`
+- Store logs in in-memory ring buffer (latest 1,000 requests)
+- Support basic filtering and search
+- Export logs as JSON
 
-### High-Level Architecture
+#### 2. Desktop UI (Svelte + Tauri)
+- Display live list of API requests
+- Show request/response details (method, URL, status, headers, body)
+- Search and filter requests
+- Clear all logs
+- Export logs to JSON file
+
+#### 3. Desktop Application (Tauri)
+- Single-window desktop app for macOS
+- Auto-start capability
+- System tray icon (optional for MVP)
+- Minimize to background
+
+### Non-Functional Requirements
+
+- **Performance**: Handle 100+ logs/second without lag
+- **Memory**: Use < 100MB RAM with 1,000 stored logs
+- **Startup**: Launch in < 2 seconds
+- **Compatibility**: macOS 12+ (Intel & Apple Silicon)
+
+---
+
+## Out of Scope (Phase 2+)
+
+- iOS/Android client SDKs
+- Embedded in-app viewer
+- Persistent database (beyond current session)
+- Advanced analytics or insights
+- Team/multi-user features
+- Cloud sync
+- Windows/Linux support
+
+---
+
+## Architecture
+
+### High-Level Diagram
 
 ```
-┌─────────────────┐
-│  Mobile App     │
-│ (iOS/Android/   │
-│   Flutter)      │
-└────────┬────────┘
-         │ Sends request/response data
-         │ via WebSocket/HTTP
-         ▼
-┌─────────────────┐
-│   dev-see       │
-│ Desktop App     │
-│                 │
-│ • Receives data │
-│ • Stores logs   │
-│ • Displays UI   │
-└─────────────────┘
+┌──────────────────┐
+│   dev-see        │
+│   Desktop App    │
+│   (Tauri)        │
+│                  │
+│  ┌────────────┐  │
+│  │  Svelte    │  │
+│  │  Web UI    │  │
+│  └─────┬──────┘  │
+│        │ WS      │
+│  ┌─────▼──────┐  │
+│  │  Fastify   │  │
+│  │  Server    │  │
+│  └─────┬──────┘  │
+│        │ HTTP    │
+└────────┼─────────┘
+         │
+    ┌────▼─────────────────────┐
+    │  External App/Tool       │
+    │  (sends API logs via     │
+    │   POST /api/logs)        │
+    └──────────────────────────┘
 ```
 
-### Communication Protocol (TBD)
+### Data Flow
 
-The app will receive API data from client applications via one of:
+1. **External tool/app** sends API log data to `POST /api/logs`
+2. **Fastify server** validates and stores in in-memory buffer
+3. **WebSocket broadcasts** new logs to all connected clients in real-time
+4. **Svelte UI** receives updates and re-renders the list
+5. **User interacts** with logs (view details, search, export)
 
-**Option 1: WebSocket**
-- Persistent connection for real-time streaming
-- Lower latency for live updates
-- Better for high-frequency API calls
+---
 
-**Option 2: HTTP Requests**
-- Simpler integration
-- No persistent connection overhead
-- Easier to implement in any language/framework
+## User Flow
 
-### Integration
+### Getting Started (Developer)
 
-Developers integrate dev-see into their mobile apps by:
-1. Installing a lightweight SDK/library
-2. Configuring the dev-see server address (localhost or network IP)
-3. The SDK automatically intercepts and forwards API calls to dev-see
-4. Zero impact on production builds (debug-only integration)
+1. Download and open dev-see desktop app
+2. App starts Fastify server on `localhost:9090`
+3. Developer configures their tool/script to send logs to `http://localhost:9090/api/logs`
+4. Opens dev-see UI (same window)
+5. Starts making API calls and sees them appear in real-time
 
-## Target Users
+### Using the App
 
-- **Mobile App Developers** building iOS and Android applications
-- **Flutter Developers** working on cross-platform apps
-- **QA Engineers** testing API integrations
-- **Backend Developers** debugging API issues reported by mobile teams
+1. **View logs**: See list of requests with method, URL, status code, duration
+2. **See details**: Click a request to expand and view headers/body
+3. **Search**: Filter by URL or status code
+4. **Clear**: Wipe all logs with one click
+5. **Export**: Save logs to JSON file for later analysis
 
-## Use Cases
+---
 
-1. **API Debugging**: Inspect exact request payloads and response data
-2. **Error Diagnosis**: Quickly identify failed requests and error responses
-3. **Performance Analysis**: Monitor API response times and identify slow endpoints
-4. **Development Testing**: Verify API integration during feature development
-5. **Documentation**: Capture real API examples for documentation or bug reports
+## Deliverables
 
-## Technology Stack (Proposed)
+### Code
+- [ ] Fastify server with WebSocket support
+- [ ] Svelte UI for viewing logs
+- [ ] Tauri desktop app wrapper
+- [ ] Basic HTTP client for testing
 
-- **Desktop Framework**: Electron, Tauri, or native (to be decided)
-- **UI Framework**: React, Vue, or Svelte
-- **Data Storage**: SQLite or similar lightweight database
-- **Server Component**: Node.js, Rust, or Go for handling incoming connections
-- **Client SDKs**: Swift (iOS), Kotlin/Java (Android), Dart (Flutter)
+### Documentation
+- [ ] API documentation (POST /api/logs, WS /ws endpoints)
+- [ ] Setup guide for developers
+- [ ] Example scripts to send logs
 
-## Success Criteria
+### Deployment
+- [ ] macOS `.dmg` installer
+- [ ] Release notes
 
-A successful dev-see application will:
-- Reduce time spent debugging API issues by 50%+
-- Provide a delightful, intuitive user experience
-- Handle thousands of logged requests without performance degradation
-- Be trivial to integrate (< 5 minutes of setup time)
-- Become an essential tool in mobile developers' workflows
+---
 
-## Next Steps
+## Success Metrics
 
-1. Finalize communication protocol (WebSocket vs HTTP)
-2. Choose desktop application framework
-3. Design UI/UX mockups
-4. Develop MVP with core features:
-   - Basic request/response logging
-   - JSON viewer
-   - Simple UI to display logs
-5. Create proof-of-concept client SDK
-6. Test with real mobile applications
+- ✅ App launches in < 2 seconds
+- ✅ Can display 100+ logs/sec without UI stuttering
+- ✅ UI loads in < 500ms
+- ✅ Memory usage < 100MB with 1,000 logs
+- ✅ Developer can send logs to app in < 5 minutes (after reading docs)
+
+---
+
+## Timeline Estimate
+
+- **Week 1**: Fastify server + basic in-memory storage
+- **Week 2**: Svelte UI for log viewing
+- **Week 3**: Tauri integration + testing
+- **Week 4**: Polish, documentation, release
+
+---
+
+## Technical Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| **Fastify** | Fast, lightweight, good WebSocket support |
+| **Svelte** | Small bundle, reactive by default, great for real-time UIs |
+| **Tauri** | Small app size, native feel, no Electron overhead |
+| **In-memory only** | Simplifies Phase 1, databases can come later |
+| **WebSocket** | Real-time updates without polling |
+| **macOS only** | Reduces complexity, target primary developer platform |
+
+---
+
+## Future Extensions
+
+### Phase 1+ Log Type Extensions
+
+The log viewer UI is designed to be extensible to support additional log types beyond API requests/responses:
+- **Console Logs** - App console output (stdout, stderr)
+- **Database Queries** - SQL queries and responses
+- **Analytics Events** - Custom app events and tracking
+- **Lifecycle Events** - App lifecycle, navigation, screen transitions
+- **Performance Metrics** - Memory usage, FPS, render times
+- **Crash Reports** - Exceptions and stack traces
+
+See [Log Viewer Design](./log-viewer-design.md) for architecture details on how future log types can be integrated.
+
+### Feature Extensions
+
+Once Phase 1 is stable:
+
+- **Phase 2**: Add persistent SQLite storage
+- **Phase 2**: Create iOS/Android SDKs
+- **Phase 3**: Embedded in-app viewer
+- **Phase 3**: Advanced search and analytics
+- **Phase 4**: Team features and cloud sync
