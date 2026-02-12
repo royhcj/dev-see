@@ -1,0 +1,16 @@
+{
+  "name": "dev-see",
+  "version": "0.1.0",
+  "description": "Web-based API log viewer",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm run --parallel dev",
+    "dev:server": "pnpm --filter server dev",
+    "dev:ui": "pnpm --filter ui dev",
+    "build": "pnpm run --parallel build",
+    "build:ui": "pnpm --filter ui build",
+    "build:server": "pnpm --filter server build",
+    "test": "pnpm run --recursive test",
+    "lint": "pnpm run --recursive lint"
+  }
+}
