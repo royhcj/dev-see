@@ -24,26 +24,26 @@
 - [x] Create root `README.md` with project overview and web app quick start
 - [x] Create `CONTRIBUTING.md` with contribution guidelines
 
-## Fastify Server Setup (`packages/server`) - Phase 1
+## Fastify Server Setup (`packages/server`) - Phase 1 ✅
 
-- [ ] Initialize package: `cd packages/server && pnpm init`
-- [ ] Install core dependencies: `pnpm add fastify @fastify/cors @fastify/websocket @fastify/static`
-- [ ] Install dev dependencies: `pnpm add -D typescript tsx @types/node vitest @vitest/ui prettier eslint`
-- [ ] Create `tsconfig.json` with TypeScript configuration
-- [ ] Add pnpm scripts to `package.json`: `dev`, `build`, `start`, `test`, `lint`
-- [ ] Create `src/` directory structure
-- [ ] Create `src/index.ts` entry point (serves both API and static UI files)
-- [ ] Create `src/routes/` directory
-- [ ] Create `src/routes/logs.ts` for POST /api/logs endpoint
-- [ ] Create `src/routes/ws.ts` for WebSocket /ws endpoint
-- [ ] Create `src/storage/ring-buffer.ts` for in-memory log storage
-- [ ] Create `src/models.ts` for TypeScript types
-- [ ] Create `src/utils/validation.ts` utility
-- [ ] Configure static file serving for UI (path: `../../apps/ui/dist`)
-- [ ] Add SPA catch-all route (returns index.html for any unmatched route)
-- [ ] Create `tests/` directory for test files
-- [ ] Create `README.md` documenting server setup and API
-- [ ] Create `.env.local` with development variables:
+- [x] Initialize package: `cd packages/server && pnpm init`
+- [x] Install core dependencies: `pnpm add fastify @fastify/cors @fastify/websocket @fastify/static`
+- [x] Install dev dependencies: `pnpm add -D typescript tsx @types/node vitest @vitest/ui prettier eslint`
+- [x] Create `tsconfig.json` with TypeScript configuration
+- [x] Add pnpm scripts to `package.json`: `dev`, `build`, `start`, `test`, `lint`
+- [x] Create `src/` directory structure
+- [x] Create `src/index.ts` entry point (serves both API and static UI files)
+- [x] Create `src/routes/` directory
+- [x] Create `src/routes/logs.ts` for POST /api/logs endpoint
+- [x] Create `src/routes/ws.ts` for WebSocket /ws endpoint
+- [x] Create `src/storage/ring-buffer.ts` for in-memory log storage
+- [x] Create `src/models.ts` for TypeScript types
+- [x] Create `src/utils/validation.ts` utility
+- [x] Configure static file serving for UI (path: `../../apps/ui/dist`)
+- [x] Add SPA catch-all route (returns index.html for any unmatched route)
+- [x] Create `tests/` directory for test files
+- [x] Create `README.md` documenting server setup and API
+- [x] Create `.env.local` with development variables:
   - PORT=9090
   - HOST=0.0.0.0
   - MAX_LOGS=1000
