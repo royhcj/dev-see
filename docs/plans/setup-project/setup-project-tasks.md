@@ -2,27 +2,27 @@
 
 > **Strategy**: Web app first (Phase 1), Desktop app optional (Phase 1.5)
 
-## Prerequisites (Phase 1 - Web App)
+## Prerequisites (Phase 1 - Web App) ✅
 
-- [ ] Install Node.js v20+ or v22 LTS (nvm or Homebrew)
+- [x] Install Node.js v20+ or v22 LTS (nvm or Homebrew)
   - *Requires user interaction: Choose installation method*
-- [ ] Verify Node.js installation: `node --version` (should be v20+)
-- [ ] Verify npm installation: `npm --version` (should be v9+)
-- [ ] Install pnpm globally: `npm install -g pnpm`
-- [ ] Verify pnpm installation: `pnpm --version` (should be v8+)
+- [x] Verify Node.js installation: `node --version` (should be v20+)
+- [x] Verify npm installation: `npm --version` (should be v9+)
+- [x] Install pnpm globally: `npm install -g pnpm`
+- [x] Verify pnpm installation: `pnpm --version` (should be v8+)
 
-## Repository Structure & Root Setup (Phase 1)
+## Repository Structure & Root Setup (Phase 1) ✅
 
-- [ ] Create root-level `package.json` with pnpm workspace scripts
-- [ ] Create `pnpm-workspace.yaml` with workspace configuration
-- [ ] Create directory structure:
+- [x] Create root-level `package.json` with pnpm workspace scripts
+- [x] Create `pnpm-workspace.yaml` with workspace configuration
+- [x] Create directory structure:
   - `apps/ui` (Svelte web app)
   - `packages/server` (Fastify backend)
   - `docs/plans/setup-project`
-- [ ] Create root `.gitignore` with appropriate entries (node_modules, dist, .env, etc.)
-- [ ] Create root `tsconfig.json` (or verify it exists)
-- [ ] Create root `README.md` with project overview and web app quick start
-- [ ] Create `CONTRIBUTING.md` with contribution guidelines
+- [x] Create root `.gitignore` with appropriate entries (node_modules, dist, .env, etc.)
+- [x] Create root `tsconfig.json` (or verify it exists)
+- [x] Create root `README.md` with project overview and web app quick start
+- [x] Create `CONTRIBUTING.md` with contribution guidelines
 
 ## Fastify Server Setup (`packages/server`) - Phase 1
 
