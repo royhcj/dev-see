@@ -80,8 +80,9 @@
 
   /**
    * Get WebSocket connection status
+   * In Svelte 5, we can directly access reactive state or use $derived
    */
-  $: wsStatus = wsClient.status;
+  const wsStatus = $derived(wsClient.status);
 
   /**
    * Get connection status color

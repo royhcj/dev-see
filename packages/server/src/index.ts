@@ -16,7 +16,7 @@ import { wsRoutes } from './routes/ws.js';
  */
 function loadConfig(): ServerConfig {
   return {
-    port: parseInt(process.env.PORT || '9097', 10),
+    port: parseInt(process.env.PORT || '9090', 10),
     host: process.env.HOST || '0.0.0.0',
     maxLogs: parseInt(process.env.MAX_LOGS || '1000', 10),
     logLevel: process.env.LOG_LEVEL || 'info',

@@ -29,8 +29,8 @@ class WebSocketClient {
   private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 3000; // 3 seconds
 
-  // Reactive status - becomes reactive when used in Svelte components
-  status: WebSocketStatus = 'disconnected';
+  // Reactive status using $state rune (only works in .svelte.ts files)
+  status = $state<WebSocketStatus>('disconnected');
 
   /**
    * Connects to the WebSocket server
