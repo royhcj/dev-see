@@ -52,25 +52,31 @@
   - UI_DIST_PATH=../../apps/ui/dist
   - *Requires user interaction: Configure if different from defaults*
 
-## Svelte UI Initial Setup (`apps/ui`) - Phase 1 (Hello World)
+## Svelte UI Initial Setup (`apps/ui`) - Phase 1 (Hello World) ✅
 
 This section sets up the basic Svelte + Vite scaffolding with a simple "Hello World" app. Component implementation comes later.
 
-- [ ] Initialize with Vite + Svelte: `cd apps/ui && pnpm create vite@latest . -- --template svelte-ts`
+- [x] Initialize with Vite + Svelte: `cd apps/ui && pnpm create vite@latest . -- --template svelte-ts`
   - This creates a basic Svelte TypeScript project with Vite
-- [ ] Install dependencies: `pnpm install`
-- [ ] Install dev dependencies: `pnpm add -D tailwindcss postcss autoprefixer vitest @testing-library/svelte`
+  - Note: Manually added Svelte dependencies due to template issue
+- [x] Install dependencies: `pnpm install`
+- [x] Install dev dependencies: `pnpm add -D tailwindcss postcss autoprefixer vitest @testing-library/svelte`
   - Tailwind for styling, Vitest for testing
-- [ ] Configure Tailwind: `pnpm dlx tailwindcss init -p`
+  - Also installed: `svelte`, `@sveltejs/vite-plugin-svelte`, `@tailwindcss/postcss`
+- [x] Configure Tailwind: `pnpm dlx tailwindcss init -p`
   - Creates `tailwind.config.js` and `postcss.config.js`
-- [ ] Update `vite.config.ts` to set build output to `dist/`
+  - Manually created due to Tailwind v4 changes
+- [x] Update `vite.config.ts` to set build output to `dist/`
   - Ensures build outputs to the correct directory for server static file serving
-- [ ] Create/update pnpm scripts in `package.json`: `dev`, `build`, `preview`, `test`, `lint`
-- [ ] Verify `src/App.svelte` exists (created by Vite template) or create a simple "Hello World" version
-- [ ] Create/update `src/styles/global.css` with Tailwind directives
-- [ ] Create `tests/` directory for test files
-- [ ] Create `README.md` documenting UI setup and development
-- [ ] Create `.env.local` with development variables:
+- [x] Create/update pnpm scripts in `package.json`: `dev`, `build`, `preview`, `test`, `lint`
+- [x] Verify `src/App.svelte` exists (created by Vite template) or create a simple "Hello World" version
+  - Created custom Hello World component with Svelte 5 syntax
+- [x] Create/update `src/styles/global.css` with Tailwind directives
+  - Added @tailwind directives and global styles
+- [x] Create `tests/` directory for test files
+- [x] Create `README.md` documenting UI setup and development
+  - Comprehensive README with learning resources
+- [x] Create `.env.local` with development variables:
   - VITE_SERVER_URL=http://localhost:9090
   - VITE_WS_URL=ws://localhost:9090/ws
   - *Requires user interaction: Update URLs if server port changes*
