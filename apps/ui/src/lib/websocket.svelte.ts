@@ -61,9 +61,9 @@ class WebSocketClient {
           const data = JSON.parse(event.data);
 
           // Handle different message types
-          if (data.type === 'log') {
+          if (data.type === 'new-log') {
             // Server sent a new log entry
-            this.handleLogMessage(data.payload);
+            this.handleLogMessage(data.data);
           } else if (data.type === 'ping') {
             // Server sent a keepalive ping, respond with pong
             this.send({ type: 'pong' });
@@ -118,11 +118,49 @@ class WebSocketClient {
 
   /**
    * Handles incoming log messages from the server
+   * Converts server format (ISO timestamp) to client format (Unix timestamp)
    */
-  private handleLogMessage(payload: Omit<LogEntry, 'id' | 'timestamp'>) {
-    // Add the log to the store
-    // The store will automatically generate id and timestamp
-    logsStore.addLog(payload);
+  private handleLogMessage(logData: any) {
+    // Extract the log data and convert timestamp
+    const logEntry: Omit<LogEntry, 'id' | 'timestamp'> = {
+      method: logData.method,
+      url: logData.url,
+      statusCode: logData.statusCode,
+      duration: logData.duration,
+      requestHeaders: logData.requestHeaders,
+      responseHeaders: logData.responseHeaders,
+      requestBody: logData.requestBody,
+      responseBody: logData.responseBody,
+    };
+
+    // Add the log to the store (store generates ID and timestamp)
+    logsStore.addLog(logEntry);
+  }
+
+  /**
+   * Fetches existing logs from the server API
+   */
+  async fetchExistingLogs() {
+    try {
+      console.log('📥 Fetching existing logs from server...');
+      const response = await fetch(`${config.serverUrl}/api/logs`);
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch logs: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(`📥 Loaded ${data.count} existing logs`);
+
+      // Add all logs to store
+      if (data.logs && Array.isArray(data.logs)) {
+        for (const logData of data.logs) {
+          this.handleLogMessage(logData);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch existing logs:', error);
+    }
   }
 
   /**
@@ -175,10 +213,14 @@ class WebSocketClient {
 export const wsClient = new WebSocketClient();
 
 /**
- * Initializes the WebSocket connection
+ * Initializes the WebSocket connection and fetches existing logs
  * Call this in your app's main component (App.svelte)
  */
 export function initWebSocket() {
+  // First, fetch existing logs from the API
+  wsClient.fetchExistingLogs();
+
+  // Then connect to WebSocket for real-time updates
   wsClient.connect();
 
   // Return cleanup function for Svelte's onDestroy or $effect cleanup
