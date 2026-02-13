@@ -52,22 +52,22 @@
   - UI_DIST_PATH=../../apps/ui/dist
   - *Requires user interaction: Configure if different from defaults*
 
-## Svelte UI Setup (`apps/ui`) - Phase 1
+## Svelte UI Initial Setup (`apps/ui`) - Phase 1 (Hello World)
+
+This section sets up the basic Svelte + Vite scaffolding with a simple "Hello World" app. Component implementation comes later.
 
 - [ ] Initialize with Vite + Svelte: `cd apps/ui && pnpm create vite@latest . -- --template svelte-ts`
+  - This creates a basic Svelte TypeScript project with Vite
 - [ ] Install dependencies: `pnpm install`
 - [ ] Install dev dependencies: `pnpm add -D tailwindcss postcss autoprefixer vitest @testing-library/svelte`
+  - Tailwind for styling, Vitest for testing
 - [ ] Configure Tailwind: `pnpm dlx tailwindcss init -p`
+  - Creates `tailwind.config.js` and `postcss.config.js`
 - [ ] Update `vite.config.ts` to set build output to `dist/`
+  - Ensures build outputs to the correct directory for server static file serving
 - [ ] Create/update pnpm scripts in `package.json`: `dev`, `build`, `preview`, `test`, `lint`
-- [ ] Create `src/components/LogList.svelte` component
-- [ ] Create `src/components/LogDetail.svelte` component
-- [ ] Create `src/components/Search.svelte` component
-- [ ] Create `src/components/Controls.svelte` component
-- [ ] Create `src/stores/logs.ts` Svelte store for reactive log state
-- [ ] Create `src/lib/websocket.ts` WebSocket client
-- [ ] Create `src/lib/config.ts` for runtime environment detection (Tauri vs browser)
-- [ ] Create/update `src/styles/global.css`
+- [ ] Verify `src/App.svelte` exists (created by Vite template) or create a simple "Hello World" version
+- [ ] Create/update `src/styles/global.css` with Tailwind directives
 - [ ] Create `tests/` directory for test files
 - [ ] Create `README.md` documenting UI setup and development
 - [ ] Create `.env.local` with development variables:
@@ -157,6 +157,31 @@
 - [ ] Test that server starts automatically when desktop app opens
 - [ ] Test that server stops when desktop app closes
 
+## Svelte UI Components Implementation (`apps/ui`) - Phase 1
+
+After basic UI setup is verified and working, implement the actual log viewer components and functionality.
+
+- [ ] Create `src/components/` directory if it doesn't exist
+- [ ] Create `src/components/LogList.svelte` component
+  - Displays list of API logs with virtual scrolling
+- [ ] Create `src/components/LogDetail.svelte` component
+  - Shows detailed request/response information for selected log
+- [ ] Create `src/components/Search.svelte` component
+  - Search and filter functionality for logs
+- [ ] Create `src/components/Controls.svelte` component
+  - UI controls for clearing logs, filtering by status, etc.
+- [ ] Create `src/stores/` directory if it doesn't exist
+- [ ] Create `src/stores/logs.ts` Svelte store for reactive log state
+  - Manages log data and provides reactive subscriptions
+- [ ] Create `src/lib/` directory if it doesn't exist
+- [ ] Create `src/lib/websocket.ts` WebSocket client
+  - Handles WebSocket connection to server for real-time log streaming
+- [ ] Create `src/lib/config.ts` for runtime environment detection (Tauri vs browser)
+  - Detects whether running in Tauri desktop app or browser
+- [ ] Update `src/App.svelte` to integrate all components
+  - Wire up LogList, LogDetail, Search, and Controls
+- [ ] Update `src/styles/global.css` with component-specific styles
+
 ## VS Code & Tooling Setup
 
 - [ ] Create `.vscode/extensions.json` with recommended extensions:
@@ -236,11 +261,8 @@
   - [ ] WebSocket /ws endpoint for real-time streaming
   - [ ] Ring buffer storage implementation
   - [ ] Static file serving middleware
-- [ ] Implement initial UI components (see log-viewer-design.md):
-  - [ ] LogList component with virtual scrolling
-  - [ ] LogDetail component with request/response tabs
-  - [ ] Search and filter functionality
-  - [ ] WebSocket integration for live updates
+- [ ] Implement initial UI components (see "Svelte UI Components Implementation" section above and log-viewer-design.md)
+  - Refer to the dedicated section earlier in this document for detailed component tasks
 - [ ] Write unit and integration tests:
   - [ ] Server endpoint tests
   - [ ] WebSocket connection tests
