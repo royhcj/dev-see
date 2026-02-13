@@ -18,7 +18,7 @@
  */
 
 import { config } from './config';
-import { logsStore, type LogEntry } from '../stores/logs';
+import { logsStore, type LogEntry } from '../stores/logs.svelte';
 
 export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -29,8 +29,8 @@ class WebSocketClient {
   private readonly maxReconnectAttempts = 5;
   private readonly reconnectDelay = 3000; // 3 seconds
 
-  // Reactive status using Svelte 5 rune
-  status = $state<WebSocketStatus>('disconnected');
+  // Reactive status - becomes reactive when used in Svelte components
+  status: WebSocketStatus = 'disconnected';
 
   /**
    * Connects to the WebSocket server

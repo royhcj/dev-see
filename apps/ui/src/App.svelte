@@ -20,7 +20,7 @@
   import LogDetail from './components/LogDetail.svelte';
   import Search from './components/Search.svelte';
   import Controls from './components/Controls.svelte';
-  import { initWebSocket } from './lib/websocket';
+  import { initWebSocket } from './lib/websocket.svelte';
   import { config, logConfig } from './lib/config';
 
   /**
