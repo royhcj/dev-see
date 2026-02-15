@@ -10,7 +10,7 @@
    * which automatically filters the logs shown in LogList
    */
 
-  import { logsStore } from '../stores/logs.svelte';
+  import { logsStore } from '../stores/logs.svelte.js';
 
   // Local state for input value
   // We use bind:value to keep it in sync with the input

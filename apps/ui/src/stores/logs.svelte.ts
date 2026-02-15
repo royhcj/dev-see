@@ -5,7 +5,7 @@
  * Properties are directly accessible and Svelte automatically tracks changes.
  *
  * In Svelte 5, you can use this store by creating reactive references in components:
- * - Import the store: import { logsStore } from '../stores/logs.svelte'
+ * - Import the store: import { logsStore } from '../stores/logs.svelte.js'
  * - Use it directly: logsStore.logs, logsStore.addLog(), etc.
  * - Svelte 5 will auto-track when you reference properties in the template
  */

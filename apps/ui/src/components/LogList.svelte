@@ -11,7 +11,7 @@
    * Clicking a log selects it for detailed view in LogDetail component
    */
 
-  import { logsStore } from '../stores/logs.svelte';
+  import { logsStore } from '../stores/logs.svelte.js';
 
   /**
    * Returns a color class based on HTTP status code

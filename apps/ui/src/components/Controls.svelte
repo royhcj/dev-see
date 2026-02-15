@@ -11,8 +11,8 @@
    * adds/removes that status range from the filter
    */
 
-  import { logsStore } from '../stores/logs.svelte';
-  import { wsClient } from '../lib/websocket.svelte';
+  import { logsStore } from '../stores/logs.svelte.js';
+  import { wsClient } from '../lib/websocket.svelte.js';
 
   /**
    * Clears all logs with user confirmation

@@ -11,7 +11,7 @@
    * If no log is selected, shows a placeholder message
    */
 
-  import { logsStore } from '../stores/logs.svelte';
+  import { logsStore } from '../stores/logs.svelte.js';
 
   /**
    * Formats JSON for display with proper indentation

@@ -18,7 +18,7 @@
  */
 
 import { config } from './config';
-import { logsStore, type LogEntry } from '../stores/logs.svelte';
+import { logsStore, type LogEntry } from '../stores/logs.svelte.js';
 
 export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'error';
 
