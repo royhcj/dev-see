@@ -5,13 +5,13 @@
 
 ## 0. Setup and Baseline
 
-- [ ] Confirm current log viewer behavior in `apps/ui/src/App.svelte` is unchanged before starting.
-- [ ] Create component directory `apps/ui/src/components/spec/`.
-- [ ] Create OpenAPI utility directory `apps/ui/src/lib/openapi/`.
-- [ ] Create HTTP utility directory `apps/ui/src/lib/http/`.
-- [ ] Create security utility directory `apps/ui/src/lib/security/`.
-- [ ] Add/verify dependencies in `apps/ui/package.json` for YAML parsing and markdown sanitization.
-- [ ] Install dependencies from workspace root and verify `pnpm --filter ui dev` starts.
+- [x] Confirm current log viewer behavior in `apps/ui/src/App.svelte` is unchanged before starting.
+- [x] Create component directory `apps/ui/src/components/spec/`.
+- [x] Create OpenAPI utility directory `apps/ui/src/lib/openapi/`.
+- [x] Create HTTP utility directory `apps/ui/src/lib/http/`.
+- [x] Create security utility directory `apps/ui/src/lib/security/`.
+- [x] Add/verify dependencies in `apps/ui/package.json` for YAML parsing and markdown sanitization.
+- [x] Install dependencies from workspace root and verify `pnpm --filter ui dev` starts.
 
 ## 1. Phase 1: App Shell and Top Tabs
 
