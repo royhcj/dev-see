@@ -15,13 +15,13 @@
 
 ## 1. Phase 1: App Shell and Top Tabs
 
-- [ ] Add top-level tab state (`logs` | `spec`) in `apps/ui/src/App.svelte`.
-- [ ] Create `apps/ui/src/components/TopTabs.svelte` with `API Log Viewer` and `API Spec Viewer`.
-- [ ] Render `TopTabs` above main content and keep `API Log Viewer` as default.
-- [ ] Create `apps/ui/src/components/spec/SpecViewer.svelte` container component.
-- [ ] Render existing log viewer layout only when `logs` tab is active.
-- [ ] Render `SpecViewer` only when `spec` tab is active.
-- [ ] Verify switching tabs does not break WebSocket log streaming behavior.
+- [x] Add top-level tab state (`logs` | `spec`) in `apps/ui/src/App.svelte`.
+- [x] Create `apps/ui/src/components/TopTabs.svelte` with `API Log Viewer` and `API Spec Viewer`.
+- [x] Render `TopTabs` above main content and keep `API Log Viewer` as default.
+- [x] Create `apps/ui/src/components/spec/SpecViewer.svelte` container component.
+- [x] Render existing log viewer layout only when `logs` tab is active.
+- [x] Render `SpecViewer` only when `spec` tab is active.
+- [x] Verify switching tabs does not break WebSocket log streaming behavior.
 
 ## 2. Phase 2: Spec Loading and Store Model
 
