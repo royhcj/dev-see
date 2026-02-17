@@ -1,24 +1,8 @@
 <script lang="ts">
   import SpecSourceBar from './SpecSourceBar.svelte';
   import EndpointNav from './EndpointNav.svelte';
+  import EndpointDetail from './EndpointDetail.svelte';
   import { specViewerStore } from '../../stores/spec-viewer.svelte.js';
-
-  function getMethodClass(method: string): string {
-    switch (method.toUpperCase()) {
-      case 'GET':
-        return 'method-get';
-      case 'POST':
-        return 'method-post';
-      case 'PUT':
-      case 'PATCH':
-        return 'method-put';
-      case 'DELETE':
-        return 'method-delete';
-      default:
-        return 'method-other';
-    }
-  }
-
 </script>
 
 <section class="spec-viewer" aria-label="API Spec Viewer">
@@ -48,39 +32,7 @@
 
         <section class="right-pane" aria-label="Selected endpoint preview">
           {#if specViewerStore.selectedEndpoint}
-            {@const endpoint = specViewerStore.selectedEndpoint}
-
-            <div class="selected-header">
-              <span class="method {getMethodClass(endpoint.method)}">{endpoint.method}</span>
-              <code>{endpoint.path}</code>
-            </div>
-
-            {#if endpoint.summary}
-              <p class="summary">{endpoint.summary}</p>
-            {/if}
-
-            {#if endpoint.description}
-              <p class="description">{endpoint.description}</p>
-            {/if}
-
-            <div class="details-grid">
-              <div class="detail">
-                <strong>operationId</strong>
-                <span>{endpoint.operationId ?? 'Not defined'}</span>
-              </div>
-              <div class="detail">
-                <strong>Tags</strong>
-                <span>{endpoint.tags.join(', ')}</span>
-              </div>
-              <div class="detail">
-                <strong>Deprecated</strong>
-                <span>{endpoint.deprecated ? 'Yes' : 'No'}</span>
-              </div>
-              <div class="detail">
-                <strong>Try-It Base URL</strong>
-                <span>{specViewerStore.tryIt.baseUrl || 'Not defined in spec servers'}</span>
-              </div>
-            </div>
+            <EndpointDetail />
           {:else}
             <div class="state-card">
               <h2>No Endpoint Selected</h2>
@@ -148,100 +100,9 @@
     background: var(--bg-secondary, #f5f5f5);
   }
 
-  .method {
-    display: inline-block;
-    min-width: 3.2rem;
-    text-align: center;
-    border-radius: 0.3rem;
-    padding: 0.2rem 0.35rem;
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 700;
-    font-family: 'Courier New', Courier, monospace;
-  }
-
-  .method-get {
-    background: #4caf50;
-  }
-
-  .method-post {
-    background: #2196f3;
-  }
-
-  .method-put {
-    background: #ff9800;
-  }
-
-  .method-delete {
-    background: #f44336;
-  }
-
-  .method-other {
-    background: #9e9e9e;
-  }
-
   .right-pane {
     padding: 1.5rem;
     overflow-y: auto;
-  }
-
-  .selected-header {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.85rem;
-  }
-
-  .selected-header code {
-    font-size: 0.95rem;
-    background: var(--code-bg, #f5f5f5);
-    border: 1px solid var(--border-color, #ddd);
-    border-radius: 0.35rem;
-    padding: 0.35rem 0.55rem;
-  }
-
-  .summary {
-    font-size: 1rem;
-    color: var(--text-primary, #333);
-  }
-
-  .description {
-    margin-top: 0.65rem;
-    color: var(--text-secondary, #666);
-    white-space: pre-wrap;
-  }
-
-  .details-grid {
-    margin-top: 1rem;
-    border: 1px solid var(--border-color, #ddd);
-    border-radius: 0.6rem;
-    overflow: hidden;
-    max-width: 720px;
-  }
-
-  .detail {
-    padding: 0.75rem 0.9rem;
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: 0.75rem;
-    border-bottom: 1px solid var(--border-light, #eee);
-    font-size: 0.9rem;
-  }
-
-  .detail:last-child {
-    border-bottom: none;
-  }
-
-  .detail strong {
-    color: var(--text-secondary, #666);
-    font-size: 0.82rem;
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-  }
-
-  .detail span {
-    color: var(--text-primary, #333);
-    overflow-wrap: anywhere;
   }
 
   @media (max-width: 1100px) {
@@ -265,11 +126,6 @@
   @media (max-width: 640px) {
     .right-pane {
       padding: 1rem;
-    }
-
-    .detail {
-      grid-template-columns: 1fr;
-      gap: 0.3rem;
     }
   }
 </style>

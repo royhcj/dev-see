@@ -52,26 +52,26 @@
 
 ## 4. Phase 4: Endpoint Details, Schemas, and Response Docs
 
-- [ ] Create `apps/ui/src/components/spec/EndpointDetail.svelte`.
-- [ ] Add sticky sub-navigation sections: Overview, Parameters, Request Body, Responses, Try It Out.
-- [ ] Implement deep-link handling with `#op/{operationId}` and method+path fallback.
-- [ ] Render method and resolved path for selected operation.
-- [ ] Render summary and description with markdown support.
-- [ ] Render `operationId`, `tags`, and deprecated indicator.
-- [ ] Add server/base URL selector with precedence: operation-level servers first, then global servers.
-- [ ] Add manual base URL override input.
-- [ ] Render structured parameter sections for path, query, header, and cookie params.
-- [ ] Add request headers section showing resolved outgoing headers.
-- [ ] Render request body section with content-type tabs.
-- [ ] Support request content types: `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`.
-- [ ] Add example payload editor and generated payload preview per selected content type.
-- [ ] Create `apps/ui/src/components/spec/SchemaTree.svelte` for expandable schema display.
-- [ ] Create `apps/ui/src/lib/openapi/schema.ts` for schema traversal and `$ref` resolution helpers.
-- [ ] Create `apps/ui/src/lib/openapi/examples.ts` for `example`, `examples`, and fallback sample generation.
-- [ ] Render response documentation by status code with description.
-- [ ] Render response headers schema, content types, body schemas, and examples.
-- [ ] Auto-expand one `2xx` response by default when available.
-- [ ] Show explicit placeholder when request body/schema is not defined in spec.
+- [x] Create `apps/ui/src/components/spec/EndpointDetail.svelte`.
+- [x] Add sticky sub-navigation sections: Overview, Parameters, Request Body, Responses, Try It Out.
+- [x] Implement deep-link handling with `#op/{operationId}` and method+path fallback.
+- [x] Render method and resolved path for selected operation.
+- [x] Render summary and description with markdown support.
+- [x] Render `operationId`, `tags`, and deprecated indicator.
+- [x] Add server/base URL selector with precedence: operation-level servers first, then global servers.
+- [x] Add manual base URL override input.
+- [x] Render structured parameter sections for path, query, header, and cookie params.
+- [x] Add request headers section showing resolved outgoing headers.
+- [x] Render request body section with content-type tabs.
+- [x] Support request content types: `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data`, `text/plain`.
+- [x] Add example payload editor and generated payload preview per selected content type.
+- [x] Create `apps/ui/src/components/spec/SchemaTree.svelte` for expandable schema display.
+- [x] Create `apps/ui/src/lib/openapi/schema.ts` for schema traversal and `$ref` resolution helpers.
+- [x] Create `apps/ui/src/lib/openapi/examples.ts` for `example`, `examples`, and fallback sample generation.
+- [x] Render response documentation by status code with description.
+- [x] Render response headers schema, content types, body schemas, and examples.
+- [x] Auto-expand one `2xx` response by default when available.
+- [x] Show explicit placeholder when request body/schema is not defined in spec.
 
 ## 5. Phase 5: Try-It-Out Request Execution
 
