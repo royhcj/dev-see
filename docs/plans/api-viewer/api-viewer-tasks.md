@@ -25,17 +25,17 @@
 
 ## 2. Phase 2: Spec Loading and Store Model
 
-- [ ] Create `apps/ui/src/stores/spec-viewer.svelte.ts` with state for source, loading, error, parsed doc, and selected endpoint.
-- [ ] Add store state for spec metadata: title, version, description.
-- [ ] Add store state for endpoint index grouped by tag with `Untagged` fallback.
-- [ ] Add Try-It-Out draft state in store (base URL, params, headers, body, content type, last response).
-- [ ] Create `apps/ui/src/components/spec/SpecSourceBar.svelte` with URL input and file upload.
-- [ ] Create `apps/ui/src/lib/openapi/parse.ts` for JSON/YAML parsing and OpenAPI 3.x shape validation.
-- [ ] Create `apps/ui/src/lib/openapi/normalize.ts` to derive endpoint nav items and tag groups.
-- [ ] Wire `SpecSourceBar` actions to store load/parse workflow.
-- [ ] Persist last loaded spec in memory for current session only.
-- [ ] Implement invalid-spec error state with clear parse/validation messages.
-- [ ] Implement empty state when no spec is loaded.
+- [x] Create `apps/ui/src/stores/spec-viewer.svelte.ts` with state for source, loading, error, parsed doc, and selected endpoint.
+- [x] Add store state for spec metadata: title, version, description.
+- [x] Add store state for endpoint index grouped by tag with `Untagged` fallback.
+- [x] Add Try-It-Out draft state in store (base URL, params, headers, body, content type, last response).
+- [x] Create `apps/ui/src/components/spec/SpecSourceBar.svelte` with URL input and file upload.
+- [x] Create `apps/ui/src/lib/openapi/parse.ts` for JSON/YAML parsing and OpenAPI 3.x shape validation.
+- [x] Create `apps/ui/src/lib/openapi/normalize.ts` to derive endpoint nav items and tag groups.
+- [x] Wire `SpecSourceBar` actions to store load/parse workflow.
+- [x] Persist last loaded spec in memory for current session only.
+- [x] Implement invalid-spec error state with clear parse/validation messages.
+- [x] Implement empty state when no spec is loaded.
 
 ## 3. Phase 3: Endpoint Navigation (Left Pane)
 
