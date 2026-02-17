@@ -39,16 +39,16 @@
 
 ## 3. Phase 3: Endpoint Navigation (Left Pane)
 
-- [ ] Create `apps/ui/src/components/spec/EndpointNav.svelte`.
-- [ ] Render collapsible tag sections with expanded/collapsed state.
-- [ ] Render endpoint rows with method badge, path, and optional summary.
-- [ ] Implement endpoint search by path, summary, and operationId.
-- [ ] Debounce endpoint search input by 150ms.
-- [ ] Wire endpoint click to selected operation state in store.
-- [ ] Add keyboard support for endpoint navigation (arrow keys and Enter).
-- [ ] Add `Cmd/Ctrl+K` shortcut to focus endpoint search.
-- [ ] Add virtualization strategy for large specs (>300 operations).
-- [ ] Ensure selected endpoint updates the right pane state.
+- [x] Create `apps/ui/src/components/spec/EndpointNav.svelte`.
+- [x] Render collapsible tag sections with expanded/collapsed state.
+- [x] Render endpoint rows with method badge, path, and optional summary.
+- [x] Implement endpoint search by path, summary, and operationId.
+- [x] Debounce endpoint search input by 150ms.
+- [x] Wire endpoint click to selected operation state in store.
+- [x] Add keyboard support for endpoint navigation (arrow keys and Enter).
+- [x] Add `Cmd/Ctrl+K` shortcut to focus endpoint search.
+- [x] Add virtualization strategy for large specs (>300 operations).
+- [x] Ensure selected endpoint updates the right pane state.
 
 ## 4. Phase 4: Endpoint Details, Schemas, and Response Docs
 

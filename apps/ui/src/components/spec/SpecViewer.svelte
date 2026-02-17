@@ -1,5 +1,6 @@
 <script lang="ts">
   import SpecSourceBar from './SpecSourceBar.svelte';
+  import EndpointNav from './EndpointNav.svelte';
   import { specViewerStore } from '../../stores/spec-viewer.svelte.js';
 
   function getMethodClass(method: string): string {
@@ -18,9 +19,6 @@
     }
   }
 
-  function selectEndpoint(endpointId: string): void {
-    specViewerStore.selectEndpoint(endpointId);
-  }
 </script>
 
 <section class="spec-viewer" aria-label="API Spec Viewer">
@@ -45,48 +43,7 @@
     {:else}
       <div class="spec-layout">
         <aside class="left-pane" aria-label="OpenAPI endpoint index">
-          {#if specViewerStore.metadata}
-            <header class="spec-meta">
-              <h2>{specViewerStore.metadata.title}</h2>
-              <p class="version">Version {specViewerStore.metadata.version}</p>
-              {#if specViewerStore.metadata.description}
-                <p class="description">{specViewerStore.metadata.description}</p>
-              {/if}
-            </header>
-          {/if}
-
-          <div class="groups">
-            <div class="groups-header">
-              <h3>Endpoints</h3>
-              <span>{specViewerStore.operationCount}</span>
-            </div>
-
-            {#if specViewerStore.endpointGroups.length === 0}
-              <p class="group-empty">No operations were found in `paths`.</p>
-            {:else}
-              {#each specViewerStore.endpointGroups as group (group.tag)}
-                <section class="group">
-                  <h4>{group.tag} ({group.endpoints.length})</h4>
-                  <div class="endpoint-list">
-                    {#each group.endpoints as endpoint (`${group.tag}:${endpoint.id}`)}
-                      <button
-                        type="button"
-                        class="endpoint-row"
-                        class:selected={specViewerStore.selectedEndpointId === endpoint.id}
-                        onclick={() => selectEndpoint(endpoint.id)}
-                      >
-                        <span class="method {getMethodClass(endpoint.method)}">{endpoint.method}</span>
-                        <span class="path">{endpoint.path}</span>
-                        {#if endpoint.summary}
-                          <small>{endpoint.summary}</small>
-                        {/if}
-                      </button>
-                    {/each}
-                  </div>
-                </section>
-              {/each}
-            {/if}
-          </div>
+          <EndpointNav />
         </aside>
 
         <section class="right-pane" aria-label="Selected endpoint preview">
@@ -187,114 +144,8 @@
 
   .left-pane {
     border-right: 1px solid var(--border-color, #ddd);
-    overflow-y: auto;
-    background: var(--bg-secondary, #f5f5f5);
-  }
-
-  .spec-meta {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color, #ddd);
-    background: var(--bg-primary, #fff);
-  }
-
-  .spec-meta h2 {
-    margin: 0;
-    font-size: 1.1rem;
-  }
-
-  .version {
-    margin-top: 0.35rem;
-    font-size: 0.82rem;
-    color: var(--text-secondary, #666);
-  }
-
-  .description {
-    margin-top: 0.65rem;
-    color: var(--text-secondary, #666);
-    white-space: pre-wrap;
-  }
-
-  .groups {
-    padding: 0.75rem;
-  }
-
-  .groups-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0.75rem;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--text-secondary, #666);
-  }
-
-  .groups-header h3 {
-    margin: 0;
-    font-size: inherit;
-    font-weight: 700;
-  }
-
-  .group-empty {
-    margin: 0;
-    padding: 0.75rem;
-    color: var(--text-secondary, #666);
-    font-size: 0.9rem;
-  }
-
-  .group + .group {
-    margin-top: 0.75rem;
-  }
-
-  .group h4 {
-    margin: 0 0 0.5rem;
-    font-size: 0.83rem;
-    color: var(--text-secondary, #666);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-  }
-
-  .endpoint-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .endpoint-row {
-    border: 1px solid var(--border-color, #ddd);
-    border-radius: 0.5rem;
-    background: var(--bg-primary, #fff);
-    padding: 0.5rem 0.6rem;
-    cursor: pointer;
-    text-align: left;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .endpoint-row:hover {
-    background: var(--bg-hover, #f0f0f0);
-  }
-
-  .endpoint-row.selected {
-    border-color: var(--primary-color, #2196f3);
-    box-shadow: inset 0 0 0 1px var(--primary-color, #2196f3);
-  }
-
-  .endpoint-row .path {
-    font-family: 'Courier New', Courier, monospace;
-    color: var(--text-primary, #333);
-    white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .endpoint-row small {
-    grid-column: 1 / -1;
-    color: var(--text-secondary, #666);
-    font-size: 0.8rem;
-    line-height: 1.35;
+    background: var(--bg-secondary, #f5f5f5);
   }
 
   .method {
@@ -352,6 +203,12 @@
   .summary {
     font-size: 1rem;
     color: var(--text-primary, #333);
+  }
+
+  .description {
+    margin-top: 0.65rem;
+    color: var(--text-secondary, #666);
+    white-space: pre-wrap;
   }
 
   .details-grid {
