@@ -1,10 +1,13 @@
 <script lang="ts">
+  import { config } from '../../lib/config.js';
   import { buildCurlCommand } from '../../lib/http/curl.js';
   import {
     buildTryItRequest,
     executeTryItRequest,
     normalizeContentType,
     TryItExecutionError,
+    type BuiltTryItRequest,
+    type TryItExecutionResult,
     type TryItAuthOption,
     type TryItAuthSelection,
     type TryItParamLocation,
@@ -211,7 +214,7 @@
       return;
     }
 
-    let request;
+    let request: BuiltTryItRequest;
     try {
       request = buildTryItRequest({
         method,
@@ -234,14 +237,24 @@
 
     executing = true;
     specViewerStore.clearTryItResponse();
+    const executionStart = performance.now();
 
     try {
       const response = await executeTryItRequest(request, timeoutMs);
       specViewerStore.setTryItDraft({
         lastResponse: response,
       });
+      await saveTryItLog({
+        request,
+        response,
+      });
     } catch (error) {
       executionError = formatExecutionError(error);
+      await saveTryItLog({
+        request,
+        durationMs: Math.max(0, Math.round(performance.now() - executionStart)),
+        errorMessage: formatExecutionError(error),
+      });
     } finally {
       executing = false;
     }
@@ -386,6 +399,106 @@
     if (status >= 300) return 'response-redirect';
     if (status >= 200) return 'response-success';
     return 'response-other';
+  }
+
+  async function saveTryItLog(input: {
+    request: BuiltTryItRequest;
+    response?: TryItExecutionResult;
+    durationMs?: number;
+    errorMessage?: string;
+  }): Promise<void> {
+    const requestContentType = readHeader(input.request.headers, 'content-type');
+    const payload = {
+      method: input.request.method,
+      url: input.request.url,
+      statusCode: input.response?.status ?? 599,
+      duration: input.response?.durationMs ?? input.durationMs ?? 0,
+      requestHeaders: input.request.headers,
+      requestBody: parseRequestBody(input.request.curlBody, requestContentType),
+      responseHeaders: input.response?.headers,
+      responseBody: input.response
+        ? parseBodyText(input.response.bodyText, input.response.contentType)
+        : undefined,
+      error: input.errorMessage,
+    };
+
+    try {
+      const saveResponse = await fetch(`${config.serverUrl}/api/logs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!saveResponse.ok) {
+        console.warn('Failed to save Try It Out log entry.', await safeReadText(saveResponse));
+      }
+    } catch (error) {
+      console.warn('Failed to save Try It Out log entry.', error);
+    }
+  }
+
+  async function safeReadText(response: Response): Promise<string> {
+    try {
+      return await response.text();
+    } catch {
+      return '';
+    }
+  }
+
+  function parseRequestBody(
+    curlBody: BuiltTryItRequest['curlBody'],
+    contentType?: string
+  ): unknown {
+    if (!curlBody) {
+      return undefined;
+    }
+
+    if (curlBody.kind === 'raw') {
+      return parseBodyText(curlBody.value, contentType);
+    }
+
+    const formRecord: Record<string, string> = {};
+    for (const entry of curlBody.entries) {
+      formRecord[entry.name] = entry.value;
+    }
+    return formRecord;
+  }
+
+  function parseBodyText(bodyText: string, contentType?: string): unknown {
+    const trimmedBody = bodyText.trim();
+    if (!trimmedBody) {
+      return undefined;
+    }
+
+    const normalized = normalizeContentType(contentType);
+    if (normalized === 'application/json' || normalized.endsWith('+json')) {
+      try {
+        return JSON.parse(bodyText);
+      } catch {
+        return bodyText;
+      }
+    }
+
+    if (normalized === 'application/x-www-form-urlencoded') {
+      const parsed = new URLSearchParams(bodyText);
+      if ([...parsed.keys()].length > 0) {
+        return Object.fromEntries(parsed.entries());
+      }
+    }
+
+    return bodyText;
+  }
+
+  function readHeader(headers: Record<string, string>, name: string): string | undefined {
+    const normalizedTarget = name.trim().toLowerCase();
+    for (const [key, value] of Object.entries(headers)) {
+      if (key.trim().toLowerCase() === normalizedTarget) {
+        return value;
+      }
+    }
+    return undefined;
   }
 </script>
 
