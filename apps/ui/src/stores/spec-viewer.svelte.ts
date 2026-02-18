@@ -9,6 +9,7 @@ import {
   type EndpointTagGroup,
   type SpecMetadata,
 } from '../lib/openapi/normalize.js';
+import { config } from '../lib/config.js';
 
 export type SpecSourceType = 'url' | 'file';
 
@@ -96,23 +97,27 @@ class SpecViewerStore {
 
     this.state.loading = true;
     this.state.error = null;
+    const source: SpecSource = {
+      type: 'url',
+      label: url.toString(),
+    };
 
     try {
-      const response = await fetch(url.toString());
-      if (!response.ok) {
-        throw new Error(`Failed to load spec from URL (HTTP ${response.status} ${response.statusText}).`);
+      let rawSpec: string;
+      try {
+        rawSpec = await fetchSpecFromBrowser(url.toString());
+      } catch (browserFetchError) {
+        try {
+          rawSpec = await fetchSpecViaServerProxy(url.toString());
+        } catch (proxyFetchError) {
+          this.setFailure(formatUrlFetchError(url.toString(), browserFetchError, proxyFetchError), source);
+          return;
+        }
       }
 
-      const rawSpec = await response.text();
-      this.applyLoadedSpec(rawSpec, {
-        type: 'url',
-        label: url.toString(),
-      });
+      this.applyLoadedSpec(rawSpec, source);
     } catch (error) {
-      this.setFailure(formatOpenApiError(error), {
-        type: 'url',
-        label: url.toString(),
-      });
+      this.setFailure(formatOpenApiError(error), source);
     } finally {
       this.state.loading = false;
     }
@@ -259,6 +264,78 @@ class SpecViewerStore {
     this.state.selectedEndpointId = null;
     this.state.tryIt = createDefaultTryItDraft();
   }
+}
+
+interface SpecProxyResponse {
+  url: string;
+  content: string;
+  contentType?: string;
+  error?: string;
+}
+
+function isSpecProxyResponse(value: unknown): value is SpecProxyResponse {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.content === 'string';
+}
+
+async function fetchSpecFromBrowser(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to load spec from URL (HTTP ${response.status} ${response.statusText}).`);
+  }
+
+  return response.text();
+}
+
+async function fetchSpecViaServerProxy(url: string): Promise<string> {
+  const proxyUrl = new URL('/api/spec/fetch', config.serverUrl);
+  proxyUrl.searchParams.set('url', url);
+
+  const response = await fetch(proxyUrl.toString());
+  let payload: unknown = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    // Ignore JSON parsing failures and use status fallback below.
+  }
+
+  if (!response.ok) {
+    const message =
+      payload && typeof payload === 'object' && 'error' in payload && typeof payload.error === 'string'
+        ? payload.error
+        : `Proxy request failed (HTTP ${response.status} ${response.statusText}).`;
+    throw new Error(message);
+  }
+
+  if (!isSpecProxyResponse(payload)) {
+    throw new Error('Proxy returned an invalid response.');
+  }
+
+  return payload.content;
+}
+
+function isLikelyCorsOrBrowserFetchError(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  return message.includes('failed to fetch') || message.includes('networkerror') || message.includes('cors');
+}
+
+function formatUrlFetchError(url: string, browserFetchError: unknown, proxyFetchError: unknown): string {
+  if (isLikelyCorsOrBrowserFetchError(browserFetchError)) {
+    return `Could not load "${url}" directly in the browser (likely CORS). ` +
+      `Fallback proxy request also failed: ${formatOpenApiError(proxyFetchError)}.`;
+  }
+
+  return `Failed to load "${url}". Browser error: ${formatOpenApiError(browserFetchError)}. ` +
+    `Proxy error: ${formatOpenApiError(proxyFetchError)}.`;
 }
 
 function shouldPreferYaml(sourceLabel: string): boolean {
