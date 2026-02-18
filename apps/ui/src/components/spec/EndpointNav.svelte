@@ -826,6 +826,7 @@
     left: 0.35rem;
     right: 0.35rem;
     width: calc(100% - 0.7rem);
+    box-sizing: border-box;
   }
 
   .tag-row-wrapper {

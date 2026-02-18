@@ -116,6 +116,8 @@
   let expandedResponses = $state<Record<string, boolean>>({});
   let initializedEndpointId = $state<string | null>(null);
   let responseExpansionSeed = $state('');
+  let currentHash = $state('');
+  let hashSelectionSeed = $state('');
 
   const currentEndpoint = $derived(specViewerStore.selectedEndpoint);
   const operationDetail = $derived(
@@ -149,8 +151,10 @@
   );
 
   onMount(() => {
+    currentHash = window.location.hash;
+
     const handleHashChange = (): void => {
-      selectEndpointFromHash(window.location.hash);
+      currentHash = window.location.hash;
     };
 
     window.addEventListener('hashchange', handleHashChange);
@@ -160,10 +164,19 @@
   });
 
   $effect(() => {
-    const endpointCount = Object.keys(specViewerStore.endpointById).length;
-    if (endpointCount > 0) {
-      selectEndpointFromHash(window.location.hash);
+    const endpointIds = Object.keys(specViewerStore.endpointById).sort();
+    if (endpointIds.length === 0) {
+      hashSelectionSeed = '';
+      return;
     }
+
+    const seed = `${currentHash}::${endpointIds.join('|')}`;
+    if (hashSelectionSeed === seed) {
+      return;
+    }
+
+    hashSelectionSeed = seed;
+    selectEndpointFromHash(currentHash);
   });
 
   $effect(() => {
@@ -175,6 +188,7 @@
     const nextHash = `#op/${encodeURIComponent(key)}`;
     if (window.location.hash !== nextHash) {
       window.history.replaceState(null, '', nextHash);
+      currentHash = nextHash;
     }
   });
 
@@ -1125,6 +1139,10 @@
     key: string,
     endpointById: Record<string, EndpointNavItem>
   ): string | null {
+    if (endpointById[key]) {
+      return key;
+    }
+
     const endpoints = Object.values(endpointById);
 
     const operationIdMatch = endpoints.find(
@@ -1139,16 +1157,11 @@
       return methodPathMatch.id;
     }
 
-    return endpointById[key] ? key : null;
+    return null;
   }
 
   function getOperationHashKey(endpoint: EndpointNavItem): string {
-    const operationId = endpoint.operationId?.trim();
-    if (operationId) {
-      return operationId;
-    }
-
-    return `${endpoint.method} ${endpoint.path}`;
+    return endpoint.id;
   }
 
   function renderMarkdown(value: string | undefined): string {
