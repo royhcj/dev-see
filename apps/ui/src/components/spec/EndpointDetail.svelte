@@ -2,6 +2,9 @@
   import { onMount } from 'svelte';
   import DOMPurify from 'dompurify';
   import { marked } from 'marked';
+  import type {
+    TryItAuthOption,
+  } from '../../lib/http/request-builder.js';
   import type { EndpointNavItem } from '../../lib/openapi/normalize.js';
   import type { OpenApiDocument } from '../../lib/openapi/parse.js';
   import {
@@ -16,6 +19,7 @@
   } from '../../lib/openapi/schema.js';
   import { specViewerStore } from '../../stores/spec-viewer.svelte.js';
   import SchemaTree from './SchemaTree.svelte';
+  import TryItPanel from './TryItPanel.svelte';
 
   interface ServerOption {
     url: string;
@@ -79,6 +83,7 @@
     parameters: ParameterDetail[];
     requestBody: RequestBodyDetail | null;
     responses: ResponseDetail[];
+    authOptions: TryItAuthOption[];
   }
 
   interface PayloadPreview {
@@ -417,6 +422,11 @@
     const requestBody = resolveRequestBodyDetail(operation.requestBody, apiDocument);
     const responses = resolveResponseDetails(operation.responses, apiDocument);
     const servers = pickServerOptions(operation.servers, apiDocument.servers);
+    const authOptions = resolveAuthOptions(
+      operation.security,
+      apiDocument.security,
+      apiDocument.components
+    );
 
     return {
       endpoint,
@@ -429,6 +439,7 @@
       parameters,
       requestBody,
       responses,
+      authOptions,
     };
   }
 
@@ -598,6 +609,106 @@
     }
 
     return normalizeServers(globalServersValue);
+  }
+
+  function resolveAuthOptions(
+    operationSecurityValue: unknown,
+    globalSecurityValue: unknown,
+    componentsValue: unknown
+  ): TryItAuthOption[] {
+    const securitySchemes = resolveSecuritySchemes(componentsValue);
+    const selectedSecurity = Array.isArray(operationSecurityValue)
+      ? operationSecurityValue
+      : Array.isArray(globalSecurityValue)
+        ? globalSecurityValue
+        : null;
+
+    if (!selectedSecurity || selectedSecurity.length === 0) {
+      return [];
+    }
+
+    const referencedSchemeNames = new Set<string>();
+    for (const requirement of selectedSecurity) {
+      if (!isRecord(requirement)) {
+        continue;
+      }
+
+      Object.keys(requirement).forEach((schemeName) => {
+        const normalizedName = schemeName.trim();
+        if (normalizedName) {
+          referencedSchemeNames.add(normalizedName);
+        }
+      });
+    }
+
+    const schemeNames = Array.from(referencedSchemeNames);
+
+    if (schemeNames.length === 0) {
+      return [];
+    }
+
+    return schemeNames
+      .map((schemeName) => buildAuthOption(schemeName, securitySchemes[schemeName]))
+      .filter((option): option is TryItAuthOption => option !== null);
+  }
+
+  function resolveSecuritySchemes(componentsValue: unknown): Record<string, unknown> {
+    if (!isRecord(componentsValue)) {
+      return {};
+    }
+    return isRecord(componentsValue.securitySchemes) ? componentsValue.securitySchemes : {};
+  }
+
+  function buildAuthOption(schemeName: string, rawScheme: unknown): TryItAuthOption | null {
+    if (!isRecord(rawScheme)) {
+      return null;
+    }
+
+    const description = asOptionalString(rawScheme.description);
+    const type = asOptionalString(rawScheme.type);
+    if (!type) {
+      return null;
+    }
+
+    if (type === 'http') {
+      const scheme = asOptionalString(rawScheme.scheme)?.toLowerCase();
+      if (scheme === 'bearer') {
+        return {
+          id: `${schemeName}:bearer`,
+          label: `${schemeName} (Bearer)`,
+          description,
+          kind: 'bearer',
+        };
+      }
+      if (scheme === 'basic') {
+        return {
+          id: `${schemeName}:basic`,
+          label: `${schemeName} (Basic)`,
+          description,
+          kind: 'basic',
+        };
+      }
+      return null;
+    }
+
+    if (type === 'apiKey') {
+      const apiKeyName = asOptionalString(rawScheme.name);
+      const apiKeyIn = asOptionalString(rawScheme.in);
+      if (!apiKeyName || (apiKeyIn !== 'header' && apiKeyIn !== 'query')) {
+        return null;
+      }
+
+      return {
+        id: `${schemeName}:apiKey`,
+        label: `${schemeName} (API key in ${apiKeyIn})`,
+        description,
+        kind: 'apiKey',
+        apiKeyName,
+        apiKeyIn,
+      };
+    }
+
+    return null;
   }
 
   function normalizeServers(value: unknown): ServerOption[] {
@@ -1523,25 +1634,15 @@
 
     <section id="spec-try-it-out" class="detail-section">
       <h2>Try It Out</h2>
-      <p>
-        Inputs above are ready for request execution. Send/cURL actions will be added in the
-        next phase.
-      </p>
-
-      <div class="try-it-preview">
-        <div>
-          <strong>Method</strong>
-          <span>{operationDetail.endpoint.method}</span>
-        </div>
-        <div>
-          <strong>Resolved URL</strong>
-          <code>{specViewerStore.tryIt.baseUrl || '(base URL not set)'}{resolvedPath}</code>
-        </div>
-        <div>
-          <strong>Content Type</strong>
-          <span>{specViewerStore.tryIt.contentType ?? 'Not selected'}</span>
-        </div>
-      </div>
+      <TryItPanel
+        method={operationDetail.endpoint.method}
+        pathTemplate={operationDetail.endpoint.path}
+        resolvedPath={resolvedPath}
+        parameters={operationDetail.parameters}
+        requestBody={operationDetail.requestBody}
+        responses={operationDetail.responses}
+        authOptions={operationDetail.authOptions}
+      />
     </section>
   </article>
 {/if}
@@ -2039,38 +2140,6 @@
     color: var(--text-secondary, #666);
   }
 
-  .try-it-preview {
-    margin-top: 0.6rem;
-    border: 1px solid var(--border-color, #ddd);
-    border-radius: 0.55rem;
-    overflow: hidden;
-  }
-
-  .try-it-preview > div {
-    display: grid;
-    grid-template-columns: 140px 1fr;
-    gap: 0.6rem;
-    padding: 0.55rem 0.7rem;
-    border-bottom: 1px solid var(--border-light, #eee);
-    align-items: start;
-  }
-
-  .try-it-preview > div:last-child {
-    border-bottom: 0;
-  }
-
-  .try-it-preview strong {
-    color: var(--text-secondary, #666);
-    text-transform: uppercase;
-    letter-spacing: 0.02em;
-    font-size: 0.74rem;
-  }
-
-  .try-it-preview code {
-    font-size: 0.78rem;
-    overflow-wrap: anywhere;
-  }
-
   @media (max-width: 860px) {
     .request-body-grid {
       grid-template-columns: 1fr;
@@ -2087,9 +2156,5 @@
       gap: 0.25rem;
     }
 
-    .try-it-preview > div {
-      grid-template-columns: 1fr;
-      gap: 0.25rem;
-    }
   }
 </style>

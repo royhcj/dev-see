@@ -75,25 +75,25 @@
 
 ## 5. Phase 5: Try-It-Out Request Execution
 
-- [ ] Create `apps/ui/src/components/spec/TryItPanel.svelte`.
-- [ ] Add `Try It Out` mode toggle to enable/disable editing.
-- [ ] Add editable inputs for path/query/header/cookie parameters.
-- [ ] Add editable request body input bound to selected content type.
-- [ ] Create `apps/ui/src/lib/http/request-builder.ts`.
-- [ ] Implement URL construction: `baseUrl + resolvedPath + queryString`.
-- [ ] Validate required path/query/header parameters before send.
-- [ ] Validate path parameter substitution is complete before send.
-- [ ] Encode request body per selected content type before send.
-- [ ] Implement auth helpers for Bearer token, Basic auth, and API key (header/query).
-- [ ] Ensure auth secrets are not persisted to disk.
-- [ ] Execute request with browser `fetch`.
-- [ ] Implement timeout handling with default 30s and UI-configurable value.
-- [ ] Render response status, status text, and duration.
-- [ ] Render response headers and body with content-type-aware formatting.
-- [ ] Add raw payload toggle for response body.
-- [ ] Create `apps/ui/src/lib/http/curl.ts` and generate copyable cURL from request.
-- [ ] Treat non-2xx responses as completed responses, not execution failures.
-- [ ] Add explicit error handling for network failure, timeout, and CORS guidance.
+- [x] Create `apps/ui/src/components/spec/TryItPanel.svelte`.
+- [x] Add `Try It Out` mode toggle to enable/disable editing.
+- [x] Add editable inputs for path/query/header/cookie parameters.
+- [x] Add editable request body input bound to selected content type.
+- [x] Create `apps/ui/src/lib/http/request-builder.ts`.
+- [x] Implement URL construction: `baseUrl + resolvedPath + queryString`.
+- [x] Validate required path/query/header parameters before send.
+- [x] Validate path parameter substitution is complete before send.
+- [x] Encode request body per selected content type before send.
+- [x] Implement auth helpers for Bearer token, Basic auth, and API key (header/query).
+- [x] Ensure auth secrets are not persisted to disk.
+- [x] Execute request with browser `fetch`.
+- [x] Implement timeout handling with default 30s and UI-configurable value.
+- [x] Render response status, status text, and duration.
+- [x] Render response headers and body with content-type-aware formatting.
+- [x] Add raw payload toggle for response body.
+- [x] Create `apps/ui/src/lib/http/curl.ts` and generate copyable cURL from request.
+- [x] Treat non-2xx responses as completed responses, not execution failures.
+- [x] Add explicit error handling for network failure, timeout, and CORS guidance.
 
 ## 6. Phase 6: UX, Accessibility, Security, and Performance
 
