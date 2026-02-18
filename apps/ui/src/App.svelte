@@ -16,12 +16,20 @@
    */
 
   import { onMount } from 'svelte';
+  import TopTabs, { type TopTab } from './components/TopTabs.svelte';
   import LogList from './components/LogList.svelte';
   import LogDetail from './components/LogDetail.svelte';
   import Search from './components/Search.svelte';
   import Controls from './components/Controls.svelte';
+  import SpecViewer from './components/spec/SpecViewer.svelte';
   import { initWebSocket } from './lib/websocket.svelte.js';
   import { config, logConfig } from './lib/config';
+
+  let activeTab: TopTab = 'logs';
+
+  function handleTabChange(event: CustomEvent<TopTab>) {
+    activeTab = event.detail;
+  }
 
   /**
    * Initialize WebSocket connection when component mounts
@@ -44,7 +52,7 @@
   <!-- Header -->
   <header class="app-header">
     <h1>🔍 dev-see</h1>
-    <p class="subtitle">API Log Viewer</p>
+    <TopTabs activeTab={activeTab} variant="header" on:change={handleTabChange} />
     {#if config.isTauriApp}
       <span class="badge">Desktop App</span>
     {:else if config.isDevelopment}
@@ -52,20 +60,26 @@
     {/if}
   </header>
 
-  <!-- Main Content -->
-  <main class="app-main">
-    <!-- Left Panel: Log List -->
-    <aside class="left-panel">
-      <Controls />
-      <Search />
-      <LogList />
-    </aside>
+  {#if activeTab === 'logs'}
+    <!-- Main Content -->
+    <main class="app-main">
+      <!-- Left Panel: Log List -->
+      <aside class="left-panel">
+        <Controls />
+        <Search />
+        <LogList />
+      </aside>
 
-    <!-- Right Panel: Log Detail -->
-    <section class="right-panel">
-      <LogDetail />
-    </section>
-  </main>
+      <!-- Right Panel: Log Detail -->
+      <section class="right-panel">
+        <LogDetail />
+      </section>
+    </main>
+  {:else}
+    <main class="spec-main">
+      <SpecViewer />
+    </main>
+  {/if}
 </div>
 
 <style>
@@ -104,12 +118,6 @@
     font-weight: 700;
   }
 
-  .subtitle {
-    margin: 0;
-    font-size: 0.95rem;
-    opacity: 0.9;
-  }
-
   .badge {
     margin-left: auto;
     padding: 0.25rem 0.75rem;
@@ -145,6 +153,13 @@
     flex-direction: column;
     background: var(--bg-primary, #fff);
     overflow: hidden;
+  }
+
+  .spec-main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    background: var(--bg-primary, #fff);
   }
 
   /* Responsive Design */
