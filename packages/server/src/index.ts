@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import type { ServerConfig } from './models.js';
 import { RingBuffer } from './storage/ring-buffer.js';
+import { httpProxyRoutes } from './routes/http-proxy.js';
 import { logsRoutes } from './routes/logs.js';
 import { specRoutes } from './routes/spec.js';
 import { wsRoutes } from './routes/ws.js';
@@ -90,6 +91,9 @@ async function startServer() {
 
   await fastify.register(specRoutes);
   fastify.log.info('Spec proxy routes registered');
+
+  await fastify.register(httpProxyRoutes);
+  fastify.log.info('HTTP proxy routes registered');
 
   /**
    * Register WebSocket routes

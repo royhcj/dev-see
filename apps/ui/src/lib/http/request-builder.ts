@@ -1,3 +1,5 @@
+import { config } from '../config.js';
+
 export type TryItParamLocation = 'path' | 'query' | 'header' | 'cookie';
 
 export interface TryItParameterDefinition {
@@ -173,58 +175,31 @@ export async function executeTryItRequest(
   fetchFn: typeof fetch = fetch
 ): Promise<TryItExecutionResult> {
   const resolvedTimeoutMs = Number.isFinite(timeoutMs) && timeoutMs > 0 ? Math.floor(timeoutMs) : 30_000;
-
-  const controller = new AbortController();
-  const started = performance.now();
-  const timeoutHandle = setTimeout(() => {
-    controller.abort();
-  }, resolvedTimeoutMs);
-
   try {
-    const response = await fetchFn(request.url, {
-      ...request.requestInit,
-      signal: controller.signal,
-    });
-
-    const durationMs = Math.max(0, Math.round(performance.now() - started));
-    const bodyText = await response.text();
-    const contentType = response.headers.get('content-type') ?? undefined;
-
-    return {
-      method: request.method,
-      url: request.url,
-      status: response.status,
-      statusText: response.statusText,
-      durationMs,
-      headers: headersToRecord(response.headers),
-      bodyText,
-      contentType,
-    };
+    return await executeTryItRequestInBrowser(request, resolvedTimeoutMs, fetchFn);
   } catch (error) {
-    if (controller.signal.aborted) {
-      throw new TryItExecutionError(
-        'timeout',
-        `Request timed out after ${resolvedTimeoutMs} ms. Increase timeout and try again.`
-      );
+    if (!isLikelyCorsError(error, request.url)) {
+      if (error instanceof TryItExecutionError) {
+        throw error;
+      }
+
+      throw new TryItExecutionError('network', 'Network request failed before a response was received.', {
+        details: error instanceof Error ? error.message : 'Network request failed.',
+      });
     }
 
-    const message = error instanceof Error ? error.message : 'Network request failed.';
-    if (isLikelyCorsError(error, request.url)) {
+    try {
+      return await executeTryItRequestViaProxy(request, resolvedTimeoutMs, fetchFn);
+    } catch (proxyError) {
       throw new TryItExecutionError(
         'cors',
         'The request was blocked before a response was received.',
         {
           details:
-            'Likely CORS issue. Ensure the target API sets Access-Control-Allow-Origin for this app origin, or test with a same-origin proxy.',
+            `Likely CORS issue. Direct browser request was blocked, and proxy retry failed: ${formatProxyError(proxyError)}`,
         }
       );
     }
-
-    throw new TryItExecutionError('network', 'Network request failed before a response was received.', {
-      details: message,
-    });
-  } finally {
-    clearTimeout(timeoutHandle);
   }
 }
 
@@ -612,6 +587,158 @@ function isLikelyCorsError(error: unknown, requestUrl: string): boolean {
   } catch {
     return false;
   }
+}
+
+async function executeTryItRequestInBrowser(
+  request: BuiltTryItRequest,
+  timeoutMs: number,
+  fetchFn: typeof fetch
+): Promise<TryItExecutionResult> {
+  const controller = new AbortController();
+  const started = performance.now();
+  const timeoutHandle = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
+
+  try {
+    const response = await fetchFn(request.url, {
+      ...request.requestInit,
+      signal: controller.signal,
+    });
+
+    const durationMs = Math.max(0, Math.round(performance.now() - started));
+    const bodyText = await response.text();
+    const contentType = response.headers.get('content-type') ?? undefined;
+
+    return {
+      method: request.method,
+      url: request.url,
+      status: response.status,
+      statusText: response.statusText,
+      durationMs,
+      headers: headersToRecord(response.headers),
+      bodyText,
+      contentType,
+    };
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new TryItExecutionError(
+        'timeout',
+        `Request timed out after ${timeoutMs} ms. Increase timeout and try again.`
+      );
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timeoutHandle);
+  }
+}
+
+interface ProxyTryItResponse {
+  method: string;
+  url: string;
+  status: number;
+  statusText: string;
+  durationMs: number;
+  headers: Record<string, string>;
+  bodyText: string;
+  contentType?: string;
+}
+
+function isProxyTryItResponse(value: unknown): value is ProxyTryItResponse {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.method === 'string' &&
+    typeof candidate.url === 'string' &&
+    typeof candidate.status === 'number' &&
+    typeof candidate.statusText === 'string' &&
+    typeof candidate.durationMs === 'number' &&
+    typeof candidate.bodyText === 'string' &&
+    candidate.headers !== null &&
+    typeof candidate.headers === 'object' &&
+    !Array.isArray(candidate.headers)
+  );
+}
+
+async function executeTryItRequestViaProxy(
+  request: BuiltTryItRequest,
+  timeoutMs: number,
+  fetchFn: typeof fetch
+): Promise<TryItExecutionResult> {
+  const proxyUrl = new URL('/api/http/proxy', config.serverUrl);
+  const proxyResponse = await fetchFn(proxyUrl.toString(), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      method: request.method,
+      url: request.url,
+      headers: request.headers,
+      timeoutMs,
+      body: buildProxyRequestBody(request),
+    }),
+  });
+
+  let payload: unknown = null;
+  try {
+    payload = await proxyResponse.json();
+  } catch {
+    // Ignore JSON parse errors and use fallback error below.
+  }
+
+  if (!proxyResponse.ok) {
+    const errorMessage =
+      payload &&
+      typeof payload === 'object' &&
+      'error' in payload &&
+      typeof payload.error === 'string'
+        ? payload.error
+        : `Proxy request failed (HTTP ${proxyResponse.status} ${proxyResponse.statusText}).`;
+    throw new Error(errorMessage);
+  }
+
+  if (!isProxyTryItResponse(payload)) {
+    throw new Error('Proxy returned an invalid response.');
+  }
+
+  return payload;
+}
+
+function buildProxyRequestBody(
+  request: BuiltTryItRequest
+): { kind: 'none' } | { kind: 'raw'; value: string } | { kind: 'multipart'; entries: CurlFormEntry[] } {
+  if (!request.curlBody) {
+    return { kind: 'none' };
+  }
+
+  if (request.curlBody.kind === 'raw') {
+    return {
+      kind: 'raw',
+      value: request.curlBody.value,
+    };
+  }
+
+  return {
+    kind: 'multipart',
+    entries: request.curlBody.entries,
+  };
+}
+
+function formatProxyError(error: unknown): string {
+  if (error instanceof TryItExecutionError) {
+    return error.details ? `${error.message} ${error.details}` : error.message;
+  }
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return 'Unknown proxy error.';
 }
 
 function encodeBase64(value: string): string {
