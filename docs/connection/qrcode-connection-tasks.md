@@ -5,37 +5,37 @@
 
 ## 0. Scope Lock
 
-- [ ] Confirm implementation follows explicit override strategy only (no Bonjour in this scope).
-- [ ] Confirm deep link contract is fixed to:
+- [x] Confirm implementation follows explicit override strategy only (no Bonjour in this scope).
+- [x] Confirm deep link contract is fixed to:
   - `dev-see-<bundle-id>://connect?server_ip=<ip-or-host>&server_port=<port>`
-- [ ] Confirm `server_ip` + `server_port` are required params.
+- [x] Confirm `server_ip` + `server_port` are required params.
 
 ## 1. Frontend: Connect App Entry
 
-- [ ] Add top-right `Connect App` button in frontend app shell.
-- [ ] Ensure button is visible on primary QA workflow screen.
-- [ ] Add open/close state for connection modal.
+- [x] Add top-right `Connect App` button in frontend app shell.
+- [x] Ensure button is visible on primary QA workflow screen.
+- [x] Add open/close state for connection modal.
 
 ## 2. Frontend: Connect Modal and Validation
 
-- [ ] Build modal UI with:
+- [x] Build modal UI with:
   - bundle id input
   - readonly server host/IP
   - readonly server port
   - deep link preview
   - QR code area
-- [ ] Add bundle id validation (required, non-empty, supported characters).
-- [ ] Add server host/port validation guard before QR generation.
-- [ ] Add clear error messages for invalid inputs.
-- [ ] Add deep link copy button.
+- [x] Add bundle id validation (required, non-empty, supported characters).
+- [x] Add server host/port validation guard before QR generation.
+- [x] Add clear error messages for invalid inputs.
+- [x] Add deep link copy button.
 
 ## 3. Frontend: Deep Link Builder + QR
 
-- [ ] Implement utility to build deep link string from `bundleId`, `serverHost`, and `serverPort`.
-- [ ] Ensure query values are URL-encoded.
-- [ ] Recompute link/QR reactively when values change.
-- [ ] Render QR from deep link text.
-- [ ] Add fallback UI if QR generation fails.
+- [x] Implement utility to build deep link string from `bundleId`, `serverHost`, and `serverPort`.
+- [x] Ensure query values are URL-encoded.
+- [x] Recompute link/QR reactively when values change.
+- [x] Render QR from deep link text.
+- [x] Add fallback UI if QR generation fails.
 
 ## 4. Swift Package: URL Handler API
 
