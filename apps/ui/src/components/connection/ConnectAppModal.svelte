@@ -4,6 +4,7 @@
   import {
     buildConnectionDeepLink,
     buildQrCodeImageUrl,
+    isLocalOnlyHost,
     parseServerTarget,
     validateBundleId,
     validateServerTarget,
@@ -17,12 +18,29 @@
   let copyState: 'idle' | 'copied' | 'error' = 'idle';
   let qrLoadFailed = false;
   let lastQrImageUrl = '';
+  let previousOpen = false;
+  let lanHostOverride = '';
+  let isResolvingLanHost = false;
+  let lanHostResolutionFailed = false;
+  let serverError: string | null = null;
 
   $: parsedTarget = parseServerTarget(config.serverUrl);
-  $: serverHost = parsedTarget?.host ?? '';
+  $: baseServerHost = parsedTarget?.host ?? '';
+  $: shouldResolveLanHost = open && !!parsedTarget && isLocalOnlyHost(baseServerHost);
+  $: serverHost = lanHostOverride || baseServerHost;
   $: serverPort = parsedTarget?.port ?? NaN;
   $: bundleIdError = validateBundleId(bundleId);
-  $: serverError = validateServerTarget(serverHost, serverPort);
+  $: {
+    if (!parsedTarget) {
+      serverError = 'Server URL configuration is invalid.';
+    } else if (shouldResolveLanHost && isResolvingLanHost) {
+      serverError = 'Resolving this Mac LAN IP...';
+    } else if (shouldResolveLanHost && (lanHostResolutionFailed || !lanHostOverride)) {
+      serverError = 'Could not determine this Mac LAN IP. Open the UI using your Mac LAN IP or set VITE_SERVER_URL to a LAN-reachable host.';
+    } else {
+      serverError = validateServerTarget(serverHost, serverPort);
+    }
+  }
   $: formError = bundleIdError ?? serverError;
   $: deepLink = formError
     ? ''
@@ -36,6 +54,22 @@
   $: if (qrImageUrl !== lastQrImageUrl) {
     qrLoadFailed = false;
     lastQrImageUrl = qrImageUrl;
+  }
+
+  $: if (open && !previousOpen) {
+    previousOpen = true;
+    copyState = 'idle';
+    if (shouldResolveLanHost) {
+      void resolveLanHost();
+    } else {
+      lanHostOverride = '';
+      lanHostResolutionFailed = false;
+      isResolvingLanHost = false;
+    }
+  }
+
+  $: if (!open && previousOpen) {
+    previousOpen = false;
   }
 
   async function copyDeepLink() {
@@ -68,6 +102,37 @@
       closeModal();
     }
   }
+
+  async function resolveLanHost() {
+    isResolvingLanHost = true;
+    lanHostResolutionFailed = false;
+    lanHostOverride = '';
+
+    try {
+      const response = await fetch(`${config.serverUrl}/api/connection/target`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const payload = await response.json() as { preferredHost?: unknown };
+      const preferredHost =
+        typeof payload.preferredHost === 'string'
+          ? payload.preferredHost.trim()
+          : '';
+
+      if (preferredHost) {
+        lanHostOverride = preferredHost;
+      } else {
+        lanHostResolutionFailed = true;
+      }
+    } catch (error) {
+      console.error('Failed to resolve LAN host:', error);
+      lanHostResolutionFailed = true;
+    } finally {
+      isResolvingLanHost = false;
+    }
+  }
+
 </script>
 
 <svelte:window on:keydown={onWindowKeyDown} />

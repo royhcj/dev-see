@@ -11,6 +11,7 @@ import { httpProxyRoutes } from './routes/http-proxy.js';
 import { logsRoutes } from './routes/logs.js';
 import { specRoutes } from './routes/spec.js';
 import { wsRoutes } from './routes/ws.js';
+import { connectionRoutes } from './routes/connection.js';
 
 /**
  * Load configuration from environment variables
@@ -94,6 +95,9 @@ async function startServer() {
 
   await fastify.register(httpProxyRoutes);
   fastify.log.info('HTTP proxy routes registered');
+
+  await fastify.register(connectionRoutes);
+  fastify.log.info('Connection helper routes registered');
 
   /**
    * Register WebSocket routes

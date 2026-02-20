@@ -35,6 +35,10 @@ export function validateServerTarget(host: string, port: number): string | null 
     return 'Server host/IP is missing. Check your app server URL configuration.';
   }
 
+  if (isLocalOnlyHost(host)) {
+    return 'Server host/IP must be LAN-reachable (not localhost, 127.0.0.1, or 0.0.0.0).';
+  }
+
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     return 'Server port must be an integer between 1 and 65535.';
   }
@@ -48,7 +52,7 @@ export function parseServerTarget(serverUrl: string): ServerTarget | null {
     const host = url.hostname.trim();
     const port = resolvePort(url.protocol, url.port);
 
-    if (validateServerTarget(host, port) !== null) {
+    if (!host || !Number.isInteger(port) || port < 1 || port > 65535) {
       return null;
     }
 
@@ -68,6 +72,16 @@ export function buildConnectionDeepLink(params: BuildDeepLinkParams): string {
 
 export function buildQrCodeImageUrl(deepLink: string): string {
   return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(deepLink)}`;
+}
+
+export function isLocalOnlyHost(host: string): boolean {
+  const normalized = host.trim().toLowerCase();
+  return (
+    normalized === 'localhost' ||
+    normalized === '0.0.0.0' ||
+    normalized === '::1' ||
+    normalized.startsWith('127.')
+  );
 }
 
 function resolvePort(protocol: string, port: string): number {

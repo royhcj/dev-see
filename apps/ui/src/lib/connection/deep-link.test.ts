@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildConnectionDeepLink,
+  isLocalOnlyHost,
   parseServerTarget,
   validateBundleId,
   validateServerTarget,
@@ -46,8 +47,19 @@ describe('connection deep-link utilities', () => {
 
   it('rejects invalid server targets', () => {
     expect(validateServerTarget('', 9090)).toBeTruthy();
+    expect(validateServerTarget('localhost', 9090)).toBeTruthy();
+    expect(validateServerTarget('127.0.0.1', 9090)).toBeTruthy();
+    expect(validateServerTarget('0.0.0.0', 9090)).toBeTruthy();
     expect(validateServerTarget('localhost', 0)).toBeTruthy();
     expect(validateServerTarget('localhost', 65536)).toBeTruthy();
     expect(parseServerTarget('invalid-url')).toBeNull();
+  });
+
+  it('identifies local-only hosts', () => {
+    expect(isLocalOnlyHost('localhost')).toBe(true);
+    expect(isLocalOnlyHost('127.0.0.1')).toBe(true);
+    expect(isLocalOnlyHost('0.0.0.0')).toBe(true);
+    expect(isLocalOnlyHost('192.168.1.23')).toBe(false);
+    expect(isLocalOnlyHost('qa-server.local')).toBe(false);
   });
 });
