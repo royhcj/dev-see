@@ -39,26 +39,26 @@
 
 ## 4. Swift Package: URL Handler API
 
-- [ ] Add public `handleUrl(_ url: URL) -> DevSeeConnectionResult`.
-- [ ] Add/confirm connection result model:
+- [x] Add public `handleUrl(_ url: URL) -> DevSeeConnectionResult`.
+- [x] Add/confirm connection result model:
   - `.connected(endpoint:)`
   - `.ignored`
   - `.failed(reason:)`
-- [ ] Parse action `connect` from deep link.
-- [ ] Parse `server_ip` and `server_port` query params.
-- [ ] Validate port range `1...65535`.
-- [ ] Validate host presence and supported format.
-- [ ] Build endpoint and apply logger server override.
-- [ ] Ignore unsupported scheme/action safely.
+- [x] Parse action `connect` from deep link.
+- [x] Parse `server_ip` and `server_port` query params.
+- [x] Validate port range `1...65535`.
+- [x] Validate host presence and supported format.
+- [x] Build endpoint and apply logger server override.
+- [x] Ignore unsupported scheme/action safely.
 
 ## 5. Swift Package: Tests
 
-- [ ] Add test: valid deep link returns `.connected`.
-- [ ] Add test: missing `server_ip` returns `.failed`.
-- [ ] Add test: missing `server_port` returns `.failed`.
-- [ ] Add test: invalid port (`0`, `65536`, non-number) returns `.failed`.
-- [ ] Add test: wrong scheme/action returns `.ignored`.
-- [ ] Add test: endpoint override is applied after successful parse.
+- [x] Add test: valid deep link returns `.connected`.
+- [x] Add test: missing `server_ip` returns `.failed`.
+- [x] Add test: missing `server_port` returns `.failed`.
+- [x] Add test: invalid port (`0`, `65536`, non-number) returns `.failed`.
+- [x] Add test: wrong scheme/action returns `.ignored`.
+- [x] Add test: endpoint override is applied after successful parse.
 
 ## 6. iOS App Integration
 
