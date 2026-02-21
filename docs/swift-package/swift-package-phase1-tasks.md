@@ -119,7 +119,7 @@
 
 ## 9. Post-Phase-1 Handoff Tasks (Do Not Start in Phase 1)
 
-- [ ] Create independent git repo for the Swift package.
-- [ ] Move package directory to new repo.
+- [x] Create independent git repo for the Swift package.
+- [x] Move package directory to new repo.
 - [ ] Add dedicated Swift CI.
-- [ ] Tag initial semver release.
+- [x] Tag initial semver release.

@@ -1,0 +1,3 @@
+[submodule "packages/swift/dev-see-logger-swift"]
+	path = packages/swift/dev-see-logger-swift
+	url = https://github.com/royhcj/dev-see-logger-swift.git
