@@ -1,0 +1,6 @@
+[submodule "packages/swift/dev-see-logger-swift"]
+	path = packages/swift/dev-see-logger-swift
+	url = https://github.com/royhcj/dev-see-logger-swift.git
+[submodule "packages/swift/dev-see-logger-moya-swift"]
+	path = packages/swift/dev-see-logger-moya-swift
+	url = https://github.com/royhcj/dev-see-logger-moya-swift.git

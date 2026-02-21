@@ -1,7 +1,7 @@
 # Swift Package Phase 1 Tasks
 
 > Based on: `/Users/roy/dev/projects/dev-see/docs/swift-package/swift-package-phase1-plan.md`
-> Last updated: 2026-02-20
+> Last updated: 2026-02-21
 
 ## 0. Scope Lock (Do First)
 
@@ -119,7 +119,110 @@
 
 ## 9. Post-Phase-1 Handoff Tasks (Do Not Start in Phase 1)
 
-- [ ] Create independent git repo for the Swift package.
-- [ ] Move package directory to new repo.
+- [x] Create independent git repo for the Swift package.
+- [x] Move package directory to new repo.
 - [ ] Add dedicated Swift CI.
-- [ ] Tag initial semver release.
+- [x] Tag initial semver release.
+
+## 10. Phase 1.1 Scope Lock (Integration Ergonomics)
+
+- [ ] Confirm this milestone is additive and backward-compatible for existing `log(...)` callers.
+- [ ] Confirm Moya remains an optional dependency (no Moya import/dependency in core package target).
+- [ ] Confirm no automatic interception work is included.
+
+## 11. Core: Center + Lifecycle APIs
+
+- [ ] Add `DevSeeLoggerCenter` to core package.
+- [ ] Add `DevSeeLoggerCenter.configure(_:)`.
+- [ ] Add `DevSeeLoggerCenter.shared`.
+- [ ] Add `DevSeeLoggerCenter.handleURL(_:)`.
+- [ ] Add `DevSeeRequestToken` public type.
+- [ ] Add `DevSeeLogger.beginRequest(_:, at:) -> DevSeeRequestToken`.
+- [ ] Add `DevSeeLogger.logCompleted(token:request:response:responseBody:requestBody:error:endedAt:)`.
+- [ ] Ensure lifecycle state is thread-safe and supports multiple concurrent identical requests.
+
+## 12. Core: Request Body Fallback
+
+- [ ] Update event mapping so request body resolution order is:
+  - explicit `requestBody` argument
+  - `request.httpBody`
+  - `nil`
+- [ ] Keep existing `log(...)` signature available.
+- [ ] Document fallback behavior in API docs and README.
+
+## 13. Adapter Packaging: Moya
+
+- [ ] Create adapter package/product `DevSeeLoggerMoya`.
+- [ ] Add dependency from adapter to `DevSeeLogger`.
+- [ ] Add dependency from adapter to `Moya`.
+- [ ] Implement `DevSeeLoggerMoyaPlugin` using `DevSeeLoggerCenter` + lifecycle APIs.
+- [ ] Ensure plugin handles success and failure paths, including missing response cases.
+- [ ] Ensure core target remains buildable without Moya.
+
+## 14. Tests for Phase 1.1
+
+- [ ] Add core tests for `DevSeeLoggerCenter` configure/shared behavior.
+- [ ] Add core tests for lifecycle tracking (`beginRequest` + `logCompleted`).
+- [ ] Add concurrency tests for identical in-flight request shapes.
+- [ ] Add mapping tests for request body fallback precedence.
+- [ ] Add adapter tests for `DevSeeLoggerMoyaPlugin` success flow.
+- [ ] Add adapter tests for `DevSeeLoggerMoyaPlugin` failure flow.
+
+## 15. Documentation + Migration
+
+- [ ] Update spec doc with package split and optional dependency rationale.
+- [ ] Add "Core-only" integration snippet.
+- [ ] Add "Moya integration" snippet using `DevSeeLoggerMoyaPlugin`.
+- [ ] Add deep-link setup snippet using `DevSeeLoggerCenter.handleURL`.
+- [ ] Add migration guide from custom app plugin to package-provided plugin.
+
+## 16. Exit Checklist for Phase 1.1
+
+- [ ] Core package exposes center + lifecycle APIs.
+- [ ] Moya adapter package is available and optional.
+- [ ] Existing manual integration API still works.
+- [ ] Tests pass for core and adapter modules.
+- [ ] README/docs provide clear before/after integration examples.
+
+## 17. Phase 1.2 Scope Lock (Remember Last Endpoint)
+
+- [ ] Confirm endpoint persistence is additive and backward-compatible with current `configure(...)` and `handleURL(...)` usage.
+- [ ] Confirm persisted data scope is only DevSee connection host/port (no auth/token/PII fields).
+- [ ] Confirm fallback behavior is defined for missing/invalid remembered endpoint values.
+
+## 18. Core: Endpoint Persistence Implementation
+
+- [ ] Add core endpoint store abstraction (for example, `DevSeeEndpointStore`) with read/write API for host/port.
+- [ ] Add default store implementation backed by `UserDefaults`.
+- [ ] Persist endpoint when `handleURL(...)` succeeds (`.connected` path only).
+- [ ] During logger center bootstrap, load remembered endpoint and apply it when valid.
+- [ ] Keep deterministic precedence:
+  - remembered endpoint (valid)
+  - configured `serverURL`
+  - package default URL
+- [ ] Ensure malformed store values are ignored safely (no throw/crash).
+- [ ] Keep transport reconfiguration in sync when restored endpoint differs from current in-memory config.
+
+## 19. Tests for Phase 1.2
+
+- [ ] Add unit tests for endpoint store serialization/deserialization.
+- [ ] Add tests proving successful deep-link connect persists host/port.
+- [ ] Add tests proving app-restart bootstrap restores remembered endpoint.
+- [ ] Add tests for invalid remembered endpoint fallback to configured/default URL.
+- [ ] Add tests verifying precedence order for remembered vs configured/default URL.
+- [ ] Add regression tests to ensure `.ignored`/`.failed` deep-link results do not overwrite remembered endpoint.
+
+## 20. Documentation Updates for Phase 1.2
+
+- [ ] Update Swift package spec with remembered endpoint behavior and precedence.
+- [ ] Update phase plan with implementation steps and acceptance criteria for persistence.
+- [ ] Update README integration docs to state that last connected IP/port is auto-restored on restart.
+- [ ] Add short troubleshooting note for clearing stale remembered endpoint during local testing.
+
+## 21. Exit Checklist for Phase 1.2
+
+- [ ] Successful deep-link connection persists endpoint.
+- [ ] Restarting app uses remembered endpoint automatically.
+- [ ] Invalid remembered values fall back safely.
+- [ ] Existing logging APIs and Moya adapter behavior remain compatible.
+- [ ] Core tests pass for endpoint persistence and fallback paths.
