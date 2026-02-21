@@ -1,153 +1,133 @@
-# Swift Package Phase 1 Plan (Minimal)
+# Swift Package Phase 1.1 Plan (Integration Ergonomics)
 
-> Last updated: 2026-02-20
+> Last updated: 2026-02-21
 
-This plan defines the simplest possible Phase 1 for the Swift logging package.
-
----
-
-## 1. Phase 1 Goal
-
-Ship a working Swift Package that lets app developers log API calls to dev-see by passing:
-
-1. `URLRequest`
-2. `HTTPURLResponse?`
-3. `responseBody: Data?`
-
-The package sends logs to the log server via `POST /api/logs`.
+This plan extends the shipped Phase 1 baseline to reduce integration effort in iOS apps, especially Moya-based apps.
 
 ---
 
-## 2. Phase 1 Constraints
+## 1. Phase 1.1 Goal
 
-1. Server URL and port are hard-coded by the app developer.
-2. No server discovery in Phase 1.
-3. Keep API and implementation minimal.
-4. Build package in local project directories first.
-5. Move to independent git repo only after Phase 1 is stable.
+Deliver a Swift SDK update where host apps no longer need to implement:
 
----
+1. A custom shared logger center.
+2. Manual request start-time tracking dictionaries.
+3. Their own Moya plugin.
 
-## 3. In Scope (Phase 1)
-
-1. Swift Package scaffold in this repo.
-2. Public logger API for manual logging calls.
-3. JSON payload mapping to current server contract.
-4. Header redaction for sensitive headers.
-5. Body truncation limit to avoid huge payloads.
-6. Basic unit tests for mapping/redaction/transport request creation.
-7. Simple usage documentation for app integration.
+At the same time, keep Moya as an optional dependency and preserve the existing core API compatibility.
 
 ---
 
-## 4. Out of Scope (Phase 1)
+## 2. Problems Found in Real Integration
 
-1. Automatic interception (`URLProtocol`, full `URLSession` delegate capture).
-2. Bonjour or any dynamic server discovery.
-3. Retry queues, offline storage, or guaranteed delivery.
-4. Advanced metrics and redirect chain logging.
-5. Publishing to standalone repo/package registry.
+1. App code must define and maintain `DevSeeLoggerCenter` itself.
+2. App code tracks `startedAt` manually using request-key maps, which is complex and can mismatch for concurrent identical requests.
+3. Moya plugin logic is copied per app.
+4. `requestBody` is passed redundantly even though body is often present in `URLRequest`.
 
 ---
 
-## 5. Local Directory Plan
+## 3. Scope (Phase 1.1)
 
-Implement under this repo first:
+1. Add `DevSeeLoggerCenter` to the core package.
+2. Add package-owned request lifecycle tracking:
+   1. `beginRequest(...) -> DevSeeRequestToken`
+   2. `logCompleted(token:...)`
+3. Add request body fallback behavior:
+   1. use explicit `requestBody` if provided.
+   2. otherwise use `request.httpBody`.
+4. Ship `DevSeeLoggerMoyaPlugin` as first-party adapter.
+5. Keep Moya dependency outside the core package.
+6. Update README/docs for one-screen integration flow.
 
-```text
-/Users/roy/dev/projects/dev-see/packages/swift/dev-see-logger/
-```
+---
 
-Suggested structure:
+## 4. Out of Scope (Phase 1.1)
 
-```text
-dev-see-logger/
-  Package.swift
-  Sources/
-    DevSeeLogger/
-      DevSeeLogger.swift
-      DevSeeLoggerConfiguration.swift
-      Models/ApiLogEvent.swift
-      Networking/LogTransport.swift
-      Encoding/HeaderRedactor.swift
-  Tests/
-    DevSeeLoggerTests/
-      DevSeeLoggerTests.swift
-      HeaderRedactorTests.swift
-```
+1. Full automatic interception (`URLProtocol`, swizzling).
+2. Offline queue/retry system.
+3. Bonjour or dynamic server discovery changes.
+4. Advanced metrics/redirect-chain capture.
+5. Non-Moya adapters (Alamofire, gRPC) in the same milestone.
+
+---
+
+## 5. Packaging Strategy
+
+1. Core package/product: `DevSeeLogger` (no Moya dependency).
+2. Adapter package/product: `DevSeeLoggerMoya` (depends on `DevSeeLogger` + `Moya`).
+3. Consumers choose adapter package only when needed.
+
+This keeps binary size and dependency graph clean for non-Moya users.
 
 ---
 
 ## 6. Implementation Steps
 
-## Step 1: Scaffold package (local)
+## Step 1: Core API additions (non-breaking)
 
-1. Create package directory and `Package.swift`.
-2. Add one library target: `DevSeeLogger`.
-3. Add one test target: `DevSeeLoggerTests`.
+1. Add `DevSeeLoggerCenter`:
+   1. `configure(_:)`
+   2. `shared`
+   3. `handleURL(_:)`
+2. Add `DevSeeRequestToken`.
+3. Add request lifecycle APIs to `DevSeeLogger`:
+   1. `beginRequest(...)`
+   2. `logCompleted(token:...)`
+4. Keep existing `log(...)` for backward compatibility.
 
-## Step 2: Minimal public API
+## Step 2: Request body fallback
 
-1. Add `DevSeeLoggerConfiguration` with:
-   - `appId`
-   - `serverURL` (hard-coded by user, e.g. `http://192.168.1.20:9090`)
-   - `apiPath` default `"/api/logs"`
-   - `maxBodyBytes`
-2. Add `DevSeeLogger.log(...)` async method.
+1. Update event mapping to resolve request body by precedence:
+   1. explicit `requestBody`
+   2. `request.httpBody`
+   3. `nil`
+2. Add tests for all precedence branches.
 
-## Step 3: Payload mapping + transport
+## Step 3: Moya adapter package
 
-1. Map `URLRequest` + `HTTPURLResponse?` + `responseBody: Data?` to server JSON payload.
-2. Redact sensitive headers (`authorization`, `cookie`, `set-cookie`, `x-api-key`).
-3. Truncate request/response body by configured limit.
-4. POST JSON to `serverURL + apiPath`.
-5. Fail silently by default (debug print only), so app flow is not blocked.
+1. Create `DevSeeLoggerMoya` package/product.
+2. Add `DevSeeLoggerMoyaPlugin` implementation using center + lifecycle APIs.
+3. Avoid direct started-time dictionary logic in app code.
+4. Add tests with success/failure Moya responses.
 
-## Step 4: Tests
+## Step 4: Documentation and migration
 
-1. Verify payload fields are mapped correctly.
-2. Verify header redaction behavior.
-3. Verify body truncation behavior.
-4. Verify transport builds request for `POST /api/logs`.
-
-## Step 5: Integration check
-
-1. Use a small sample app or test harness to call `log(...)`.
-2. Confirm logs appear in dev-see viewer through local log server.
-3. Document a short integration snippet in package README.
+1. Add migration guide from custom app plugin to first-party plugin.
+2. Add deep-link setup snippet using `DevSeeLoggerCenter.handleURL`.
+3. Add minimal integration snippet (core-only and Moya variants).
 
 ---
 
-## 7. Acceptance Criteria (Phase 1 Done)
+## 7. Acceptance Criteria
 
-1. Developer can initialize logger with hard-coded URL/port.
-2. Developer can call `log(...)` after any request completion.
-3. Server receives valid payload at `POST /api/logs`.
-4. Sensitive headers are redacted.
-5. Tests pass for core mapping/redaction/truncation.
-6. Minimal README usage example exists.
-
----
-
-## 8. After Phase 1: Repo Extraction Plan
-
-When acceptance criteria are met:
-
-1. Create independent repo for the Swift package.
-2. Move package directory as-is to new repo.
-3. Preserve git history if desired (`git subtree` or equivalent).
-4. Add dedicated CI for Swift tests.
-5. Tag first semver release after migration.
-
-This extraction is intentionally post-Phase-1 to keep initial delivery fast.
+1. A Moya app can integrate with:
+   1. one package import for core.
+   2. one optional package import for Moya adapter.
+   3. center configure call at app startup.
+   4. plugin registration in Moya provider.
+2. Core package has no Moya dependency.
+3. Existing `log(...)` callers continue to work.
+4. `requestBody` fallback works and is covered by tests.
+5. Concurrency tests cover multiple in-flight identical requests.
 
 ---
 
-## 9. Risks and Mitigation
+## 8. Risks and Mitigation
 
-1. Risk: hard-coded `localhost` fails on physical device.
-   Mitigation: require explicit host IP in docs for real-device testing.
-2. Risk: logging introduces app latency.
-   Mitigation: keep send async and non-blocking.
-3. Risk: sensitive data leakage.
-   Mitigation: enforce default header redaction and body truncation.
+1. Risk: API surface grows and becomes harder to maintain.
+   Mitigation: keep lifecycle APIs narrow and additive.
+2. Risk: accidental hard dependency on Moya in core.
+   Mitigation: enforce package split and CI check dependency graph.
+3. Risk: migration confusion for current adopters.
+   Mitigation: publish a short migration table with before/after snippets.
+
+---
+
+## 9. Milestone Exit and Next Step
+
+When all acceptance criteria pass:
+
+1. Tag a new SDK release with explicit integration ergonomics notes.
+2. Add dedicated CI for both core and Moya adapter tests.
+3. Evaluate next adapter priority (Alamofire) from adopter feedback.

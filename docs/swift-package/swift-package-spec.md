@@ -1,96 +1,139 @@
 # Swift Package Spec: API Call Logger
 
-> Last updated: 2026-02-19
+> Last updated: 2026-02-21
 
-This document defines the v1 spec for a Swift Package that captures HTTP request/response data from an app and sends logs to a dev-see log server.
+This document defines the v1 baseline plus the v1.1 integration ergonomics update for the DevSee Swift SDK.
 
 ---
 
 ## 1. Goals
 
 1. Provide a reusable Swift Package that logs HTTP traffic from iOS/macOS apps.
-2. Accept `URLRequest` and `HTTPURLResponse` as primary input types.
-3. Send normalized log payloads to the dev-see log server (`POST /api/logs`).
-4. Make server endpoint discovery configurable and practical for Simulator + real devices.
+2. Keep integration code in host apps minimal and framework-specific glue optional.
+3. Keep core package free of non-essential dependencies (for example, Moya).
+4. Send normalized log payloads to the dev-see log server (`POST /api/logs`).
 
-## 2. Non-Goals (v1)
+## 2. Non-Goals
 
-1. Full automatic interception of all networking stacks (Alamofire, gRPC, etc.) without integration work.
+1. Full automatic interception of all networking stacks without integration work.
 2. Persisting logs locally when offline.
 3. Production analytics/telemetry replacement.
 
 ---
 
-## 3. Feasibility: Is `HTTPURLResponse` + `Data` Enough?
+## 3. Core Inputs and Feasibility
 
-Short answer: yes, `HTTPURLResponse` paired with response `Data` is feasible and appropriate for v1 baseline logging.
+Short answer: `URLRequest` + `HTTPURLResponse?` + body `Data?` is enough for v1 baseline logging.
 
-### 3.1 What `HTTPURLResponse` + response `Data` gives us
+### 3.1 What these inputs provide
 
-1. `statusCode`
-2. `allHeaderFields`
-3. Response URL (final URL after redirects)
-4. MIME type / expected content length metadata
-5. Response body bytes via `Data`
+1. Method, URL, request headers.
+2. Response status and headers.
+3. Request and response body bytes.
+4. App-supplied timing and errors.
 
-### 3.2 What this pair does **not** give us
+### 3.2 What they do not provide by themselves
 
-1. Request start/end timing by itself
-2. Transport errors (`URLError`) without separate `Error`
-3. Redirect chain details (without extra instrumentation)
-4. Request body bytes unless captured separately
+1. Start time unless explicitly tracked.
+2. Redirect chain details.
+3. Metrics unless separately captured.
 
 ### 3.3 Spec decision
 
-1. The logger API will accept `URLRequest`, `HTTPURLResponse?`, and `responseBody: Data?` as core inputs, with `responseBody` expected whenever a response exists.
-2. The logger API will also accept optional contextual inputs: `requestBody`, `error`, `startedAt`, `endedAt`, and `taskMetrics`.
-3. If the response or response body is unavailable (for example, transport failure), logger still sends a partial-but-valid log.
+1. `responseBody` remains explicit.
+2. `requestBody` is optional override and defaults to `request.httpBody` when omitted.
+3. If response/responseBody is missing (for example, transport failure), logger still emits a partial valid event.
 
 ---
 
-## 4. Package API (v1)
+## 4. Public API
 
-### 4.1 Public surface
+### 4.1 Core types
 
 ```swift
 public struct DevSeeLoggerConfiguration {
     public let appId: String
     public let serverURL: URL
     public let apiPath: String // default "/api/logs"
-    public let timeout: TimeInterval // default 2s
     public let maxBodyBytes: Int // default 64 * 1024
-    public let redactedHeaders: Set<String>
 }
 
+public struct DevSeeRequestToken: Hashable, Sendable {
+    public let rawValue: UUID
+}
+```
+
+### 4.2 Logger and center
+
+```swift
 public final class DevSeeLogger {
     public init(configuration: DevSeeLoggerConfiguration)
+
+    public func beginRequest(_ request: URLRequest, at: Date = Date()) -> DevSeeRequestToken
 
     public func log(
         request: URLRequest,
         response: HTTPURLResponse?,
-        requestBody: Data? = nil,
         responseBody: Data? = nil,
+        requestBody: Data? = nil, // if nil, fallback to request.httpBody
         error: Error? = nil,
         startedAt: Date? = nil,
-        endedAt: Date = Date(),
-        taskMetrics: URLSessionTaskMetrics? = nil
+        endedAt: Date = Date()
     ) async
+
+    public func logCompleted(
+        token: DevSeeRequestToken?,
+        request: URLRequest,
+        response: HTTPURLResponse?,
+        responseBody: Data? = nil,
+        requestBody: Data? = nil,
+        error: Error? = nil,
+        endedAt: Date = Date()
+    ) async
+
+    @discardableResult
+    public func handleURL(_ url: URL) -> DevSeeConnectionResult
+}
+
+public enum DevSeeLoggerCenter {
+    public static func configure(_ configuration: DevSeeLoggerConfiguration)
+    public static var shared: DevSeeLogger { get }
+    @discardableResult public static func handleURL(_ url: URL) -> Bool
 }
 ```
 
-### 4.2 Integration modes
+### 4.3 Integration modes
 
-1. Manual mode: call `log(...)` after each request completes.
-2. URLSession wrapper mode: optional helper that wraps `URLSession` and logs automatically.
-3. Delegate mode (optional in v1.1): use `URLSessionDataDelegate` to collect response body incrementally.
+1. Manual mode: app calls `log(...)` directly.
+2. Tokenized lifecycle mode: integration calls `beginRequest` and then `logCompleted`.
+3. Adapter mode: package-provided plugin/wrapper for specific networking frameworks.
 
 ---
 
-## 5. Wire Contract to Log Server
+## 5. Adapter Packaging and Optional Dependencies
 
-The package POSTs JSON to `POST /api/logs`.
+### 5.1 Dependency rule
 
-### 5.1 Payload shape
+1. `DevSeeLogger` core must not depend on Moya.
+2. Moya integration ships as a separate adapter package/product.
+
+### 5.2 Package split
+
+1. Core: `DevSeeLogger` (no Moya dependency).
+2. Adapter: `DevSeeLoggerMoya` (depends on `DevSeeLogger` + `Moya`).
+
+### 5.3 Consumer impact
+
+1. Projects not using Moya import only `DevSeeLogger`.
+2. Projects using Moya optionally add `DevSeeLoggerMoya` and use `DevSeeLoggerMoyaPlugin`.
+
+---
+
+## 6. Wire Contract to Log Server
+
+SDK posts JSON to `POST /api/logs`.
+
+### 6.1 Payload shape
 
 ```json
 {
@@ -109,122 +152,101 @@ The package POSTs JSON to `POST /api/logs`.
 }
 ```
 
-### 5.2 Mapping rules
+### 6.2 Mapping rules
 
 1. `method` from `request.httpMethod` (fallback `"GET"`).
 2. `url` from `request.url` if present, else `response.url`.
-3. `statusCode` from `response.statusCode`, fallback `0` when unavailable.
-4. `duration` from `endedAt - startedAt`; fallback to metrics if provided; fallback `0`.
-5. Bodies are UTF-8 strings when possible; otherwise Base64 with a marker (e.g., `"base64:<...>"`).
-6. Truncate body content to `maxBodyBytes`.
-7. Redact configured sensitive headers (e.g., Authorization, Cookie, Set-Cookie).
+3. `statusCode` from `response.statusCode`, fallback `599` when unavailable.
+4. `duration` from `endedAt - startedAt`, fallback `0`.
+5. Request body resolution order:
+   1. explicit `requestBody` argument.
+   2. `request.httpBody`.
+   3. `nil`.
+6. Bodies are UTF-8 strings when possible; otherwise `base64:<...>`.
+7. Truncate request/response bodies to `maxBodyBytes`.
+8. Redact sensitive headers by default (`authorization`, `cookie`, `set-cookie`, `x-api-key`).
 
 ---
 
-## 6. Server Discovery: How app finds log server URL + port
+## 7. Reference Moya Integration
 
-## 6.1 Recommended strategy (priority order)
-
-1. Explicit config override (recommended): app passes full server URL at startup.
-2. Build-configuration defaults (`DEBUG`): values from xcconfig or scheme env vars.
-3. Bonjour discovery (optional): discover `_devsee._tcp` service on local network.
-4. Final fallback: `http://localhost:9090` (Simulator only; usually wrong on physical devices).
-
-### 6.2 Why this strategy
-
-1. Explicit config is deterministic and easy to debug.
-2. Bonjour is useful but requires iOS local-network permissions and more moving parts.
-3. `localhost` only works when app and server share host network namespace (typical in Simulator, not real phone).
-
-### 6.3 Required config fields
+1. App configures shared center once:
 
 ```swift
-public struct DevSeeEndpoint {
-    public let scheme: String // "http" | "https"
-    public let host: String
-    public let port: Int
+DevSeeLoggerCenter.configure(
+    DevSeeLoggerConfiguration(
+        appId: Bundle.main.bundleIdentifier ?? "com.example.app",
+        serverURL: URL(string: "http://127.0.0.1:9090")!
+    )
+)
+```
+
+2. App creates provider with package plugin:
+
+```swift
+let provider = MoyaProvider<MyAPI>(plugins: [DevSeeLoggerMoyaPlugin()])
+```
+
+3. App deep-link handling:
+
+```swift
+if DevSeeLoggerCenter.handleURL(url) {
+    return true
 }
 ```
 
-The package should expose a single resolved `serverURL` and log a warning if discovery fails.
-
 ---
 
-## 7. File Organization (inside Swift package)
+## 8. File Organization
 
 ```text
 DevSeeLogger/
   Package.swift
-  Sources/
-    DevSeeLogger/
-      DevSeeLogger.swift
-      DevSeeLoggerConfiguration.swift
-      EndpointResolver.swift
-      Models/
-        ApiLogEvent.swift
-      Encoding/
-        LogPayloadEncoder.swift
-        HeaderRedactor.swift
-      Networking/
-        LogTransport.swift
-      Utils/
-        BodyFormatter.swift
-  Tests/
-    DevSeeLoggerTests/
-      DevSeeLoggerTests.swift
-      HeaderRedactorTests.swift
-      EndpointResolverTests.swift
-      Fixtures/
-        sample-request.json
+  Sources/DevSeeLogger/
+    DevSeeLogger.swift
+    DevSeeLoggerCenter.swift
+    DevSeeRequestTracker.swift
+    DevSeeLoggerConfiguration.swift
+    Models/ApiLogEvent.swift
+    Networking/LogTransport.swift
+    Encoding/HeaderRedactor.swift
+  Tests/DevSeeLoggerTests/
+    DevSeeLoggerTests.swift
+    DevSeeRequestTrackerTests.swift
+    HeaderRedactorTests.swift
+
+DevSeeLoggerMoya/
+  Package.swift
+  Sources/DevSeeLoggerMoya/
+    DevSeeLoggerMoyaPlugin.swift
+  Tests/DevSeeLoggerMoyaTests/
+    DevSeeLoggerMoyaPluginTests.swift
 ```
-
-Organization principles:
-
-1. Keep transport and model encoding separate from public API.
-2. Keep endpoint discovery logic isolated (`EndpointResolver`) so discovery strategies can evolve independently.
-3. Keep redaction logic centralized and heavily tested.
-
----
-
-## 8. Repo Strategy: same repo vs separate repo
-
-Recommendation: use a **separate git repository** for the Swift package.
-
-### 8.1 Why separate repo is better here
-
-1. Independent release/versioning for Swift Package Manager tags.
-2. Cleaner CI matrix (Xcode tests) decoupled from this project's Node/Tauri CI.
-3. Easier external adoption as a standalone SDK.
-4. Lower risk of unrelated changes breaking package releases.
-
-### 8.2 Practical transition plan
-
-1. Start implementation quickly in this repo under `packages/swift/dev-see-logger` if you want fast iteration.
-2. Extract to dedicated repo before first public/semver release.
-3. Keep server API contract docs in this repo and mirror key parts into SDK repo README.
 
 ---
 
 ## 9. Security and Privacy Requirements
 
-1. Default redaction list includes `authorization`, `cookie`, `set-cookie`, `x-api-key`.
-2. Body logging can be disabled globally (`logBodies = false`).
-3. Optional allowlist for domains so only selected hosts are logged.
-4. SDK must be clearly marked for development/debug use by default.
+1. SDK is development/debug-focused by default.
+2. Sensitive headers are redacted by default.
+3. Body size is truncated using `maxBodyBytes`.
+4. Body logging can be disabled in future if required by adopters.
 
 ---
 
-## 10. Testing Requirements (v1)
+## 10. Testing Requirements
 
-1. Unit tests for payload mapping from `URLRequest` + `HTTPURLResponse`.
-2. Unit tests for header redaction and body truncation.
-3. Unit tests for endpoint resolution priority.
-4. Integration test that posts to a mock `POST /api/logs` endpoint and validates JSON payload.
+1. Unit tests for payload mapping and body fallback (`requestBody ?? request.httpBody`).
+2. Unit tests for header redaction and truncation.
+3. Unit tests for lifecycle tracking (`beginRequest` + `logCompleted`).
+4. Concurrency tests for multiple in-flight identical requests.
+5. Integration test for `POST /api/logs`.
+6. Adapter tests for `DevSeeLoggerMoyaPlugin`.
 
 ---
 
 ## 11. Open Questions
 
-1. Should v1 include automatic `URLProtocol` interception, or only manual/wrapper APIs?
-2. Should binary bodies be dropped by default instead of Base64 encoding?
-3. Should the SDK queue logs when server is temporarily unavailable?
+1. Should we also ship `DevSeeLoggerAlamofire` in v1.2?
+2. Should the center support multiple named logger instances for multi-environment apps?
+3. Should non-UTF8 request/response bodies be dropped instead of Base64 encoded?
