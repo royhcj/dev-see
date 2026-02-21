@@ -1,0 +1,125 @@
+# Swift Package Phase 1 Tasks
+
+> Based on: `/Users/roy/dev/projects/dev-see/docs/swift-package/swift-package-phase1-plan.md`
+> Last updated: 2026-02-20
+
+## 0. Scope Lock (Do First)
+
+- [x] Confirm Phase 1 constraints are enforced:
+  - hard-coded `serverURL` only
+  - no server discovery
+  - minimal manual logging API only
+- [x] Confirm out-of-scope items are excluded from implementation:
+  - automatic interception
+  - offline queue/retry
+  - advanced metrics/redirect tracing
+  - publishing to independent repo
+
+## 1. Package Scaffold (Local Repo)
+
+- [x] Create local package directory: `/Users/roy/dev/projects/dev-see/packages/swift/dev-see-logger/`
+- [x] Create `Package.swift`.
+- [x] Add library target `DevSeeLogger`.
+- [x] Add test target `DevSeeLoggerTests`.
+- [x] Create source directories:
+  - `Sources/DevSeeLogger/Models`
+  - `Sources/DevSeeLogger/Networking`
+  - `Sources/DevSeeLogger/Encoding`
+- [x] Create test directory: `Tests/DevSeeLoggerTests/`.
+
+## 2. Minimal Public API
+
+- [x] Add `DevSeeLoggerConfiguration.swift` with:
+  - `appId`
+  - `serverURL` (user hard-coded)
+  - `apiPath` (default `"/api/logs"`)
+  - `maxBodyBytes`
+- [x] Add `DevSeeLogger.swift`.
+- [x] Implement async API:
+  - `log(request: URLRequest, response: HTTPURLResponse?, responseBody: Data?, requestBody: Data? = nil, error: Error? = nil, startedAt: Date? = nil, endedAt: Date = Date())`
+- [x] Ensure API can be called manually after request completion.
+
+## 3. Payload Model and Mapping
+
+- [x] Add `Models/ApiLogEvent.swift` matching log server contract for `POST /api/logs`.
+- [x] Map `URLRequest` fields:
+  - method
+  - url
+  - request headers
+  - request body (optional)
+- [x] Map `HTTPURLResponse` + `responseBody: Data?` fields:
+  - statusCode
+  - response headers
+  - response body
+- [x] Map metadata fields:
+  - timestamp
+  - duration (from `startedAt`/`endedAt` when available)
+  - appId
+  - error string (if present)
+- [x] Normalize body encoding:
+  - UTF-8 string when possible
+  - fallback marker for non-UTF8/binary
+- [x] Enforce body truncation using `maxBodyBytes`.
+
+## 4. Privacy and Redaction
+
+- [x] Add `Encoding/HeaderRedactor.swift`.
+- [x] Redact default sensitive headers:
+  - `authorization`
+  - `cookie`
+  - `set-cookie`
+  - `x-api-key`
+- [x] Ensure redaction applies to both request and response headers.
+
+## 5. Transport
+
+- [x] Add `Networking/LogTransport.swift`.
+- [x] Build POST request to `serverURL + apiPath`.
+- [x] Set `Content-Type: application/json`.
+- [x] Encode and send payload JSON.
+- [x] Make sending non-blocking and non-fatal to app flow.
+- [x] On failure, avoid throwing into app call path (debug log only).
+
+## 6. Unit Tests
+
+- [x] Create `Tests/DevSeeLoggerTests/DevSeeLoggerTests.swift`.
+- [x] Create `Tests/DevSeeLoggerTests/HeaderRedactorTests.swift`.
+- [x] Add mapping tests:
+  - request method/url/header/body mapping
+  - response status/header/body mapping
+  - duration/timestamp mapping
+- [x] Add redaction tests:
+  - default sensitive headers are masked
+  - non-sensitive headers are preserved
+- [x] Add truncation tests:
+  - body over limit is truncated
+  - body under limit is unchanged
+- [x] Add transport request tests:
+  - endpoint path is `/api/logs`
+  - HTTP method is `POST`
+  - JSON body is present
+
+## 7. Integration Check (Manual)
+
+- [x] Add minimal usage snippet in package README.
+- [x] Run local dev-see log server.
+- [x] Integrate package into a small app/test harness with hard-coded server URL.
+- [x] Execute one successful request and call `log(...)`.
+- [x] Verify log appears in dev-see log viewer.
+- [x] Execute one failure request and verify partial/error log behavior.
+
+## 8. Phase 1 Exit Checklist
+
+- [x] Logger initializes with hard-coded URL/port.
+- [x] Manual `log(...)` call works with `URLRequest + HTTPURLResponse? + Data?`.
+- [ ] Server accepts payload at `POST /api/logs`.
+- [x] Sensitive headers are redacted by default.
+- [x] Core tests pass.
+- [x] Minimal README integration guide exists.
+
+## 9. Post-Phase-1 Handoff Tasks (Do Not Start in Phase 1)
+
+- [ ] Create independent git repo for the Swift package.
+- [ ] Move package directory to new repo.
+- [ ] Add dedicated Swift CI.
+- [ ] Tag initial semver release.

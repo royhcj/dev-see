@@ -22,13 +22,23 @@
   import Search from './components/Search.svelte';
   import Controls from './components/Controls.svelte';
   import SpecViewer from './components/spec/SpecViewer.svelte';
+  import ConnectAppModal from './components/connection/ConnectAppModal.svelte';
   import { initWebSocket } from './lib/websocket.svelte.js';
   import { config, logConfig } from './lib/config';
 
   let activeTab: TopTab = 'logs';
+  let isConnectModalOpen = false;
 
   function handleTabChange(event: CustomEvent<TopTab>) {
     activeTab = event.detail;
+  }
+
+  function openConnectModal() {
+    isConnectModalOpen = true;
+  }
+
+  function closeConnectModal() {
+    isConnectModalOpen = false;
   }
 
   /**
@@ -53,11 +63,14 @@
   <header class="app-header">
     <h1>🔍 dev-see</h1>
     <TopTabs activeTab={activeTab} variant="header" on:change={handleTabChange} />
-    {#if config.isTauriApp}
-      <span class="badge">Desktop App</span>
-    {:else if config.isDevelopment}
-      <span class="badge dev">Development</span>
-    {/if}
+    <div class="header-actions">
+      <button type="button" class="connect-button" on:click={openConnectModal}>Connect App</button>
+      {#if config.isTauriApp}
+        <span class="badge">Desktop App</span>
+      {:else if config.isDevelopment}
+        <span class="badge dev">Development</span>
+      {/if}
+    </div>
   </header>
 
   {#if activeTab === 'logs'}
@@ -81,6 +94,8 @@
     </main>
   {/if}
 </div>
+
+<ConnectAppModal open={isConnectModalOpen} on:close={closeConnectModal} />
 
 <style>
   /**
@@ -118,8 +133,31 @@
     font-weight: 700;
   }
 
-  .badge {
+  .header-actions {
     margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .connect-button {
+    border: 1px solid rgba(255, 255, 255, 0.45);
+    color: #fff;
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 0.55rem;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.86rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .connect-button:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.65);
+  }
+
+  .badge {
     padding: 0.25rem 0.75rem;
     background: rgba(255, 255, 255, 0.2);
     border-radius: 1rem;

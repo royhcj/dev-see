@@ -18,6 +18,20 @@
    */
   function formatJSON(data: unknown): string {
     if (!data) return '';
+    if (typeof data === 'string') {
+      const trimmed = data.trim();
+      if (
+        (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+        (trimmed.startsWith('[') && trimmed.endsWith(']'))
+      ) {
+        try {
+          return JSON.stringify(JSON.parse(trimmed), null, 2);
+        } catch {
+          return data;
+        }
+      }
+      return data;
+    }
     try {
       return JSON.stringify(data, null, 2);
     } catch {
