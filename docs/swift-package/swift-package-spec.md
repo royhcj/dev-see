@@ -12,12 +12,14 @@ This document defines the v1 baseline plus the v1.1 integration ergonomics updat
 2. Keep integration code in host apps minimal and framework-specific glue optional.
 3. Keep core package free of non-essential dependencies (for example, Moya).
 4. Send normalized log payloads to the dev-see log server (`POST /api/logs`).
+5. Persist the last successful connection endpoint (IP + port) and restore it after app restart.
 
 ## 2. Non-Goals
 
 1. Full automatic interception of all networking stacks without integration work.
 2. Persisting logs locally when offline.
 3. Production analytics/telemetry replacement.
+4. Multi-endpoint profile management or endpoint sync across devices.
 
 ---
 
@@ -107,6 +109,18 @@ public enum DevSeeLoggerCenter {
 1. Manual mode: app calls `log(...)` directly.
 2. Tokenized lifecycle mode: integration calls `beginRequest` and then `logCompleted`.
 3. Adapter mode: package-provided plugin/wrapper for specific networking frameworks.
+
+### 4.4 Connection endpoint persistence
+
+1. On successful `handleURL(_:)` connection parsing, the SDK must persist endpoint host and port.
+2. Persisted endpoint storage must survive app restart (default implementation: `UserDefaults`).
+3. On logger initialization (`DevSeeLoggerCenter.shared` and `configure(_:)`), the SDK must restore persisted endpoint when available and valid.
+4. Restore precedence:
+   1. valid persisted endpoint from last successful connection.
+   2. configured `serverURL` fallback.
+   3. package default server URL fallback (`http://127.0.0.1:9090`).
+5. If persisted data is missing/invalid/corrupted, SDK must ignore it and continue with fallback URL without throwing.
+6. Endpoint persistence is limited to host/port for DevSee connection use-cases (no auth/token persistence).
 
 ---
 
@@ -205,6 +219,7 @@ DevSeeLogger/
   Sources/DevSeeLogger/
     DevSeeLogger.swift
     DevSeeLoggerCenter.swift
+    DevSeeEndpointStore.swift
     DevSeeRequestTracker.swift
     DevSeeLoggerConfiguration.swift
     Models/ApiLogEvent.swift

@@ -183,3 +183,46 @@
 - [ ] Existing manual integration API still works.
 - [ ] Tests pass for core and adapter modules.
 - [ ] README/docs provide clear before/after integration examples.
+
+## 17. Phase 1.2 Scope Lock (Remember Last Endpoint)
+
+- [ ] Confirm endpoint persistence is additive and backward-compatible with current `configure(...)` and `handleURL(...)` usage.
+- [ ] Confirm persisted data scope is only DevSee connection host/port (no auth/token/PII fields).
+- [ ] Confirm fallback behavior is defined for missing/invalid remembered endpoint values.
+
+## 18. Core: Endpoint Persistence Implementation
+
+- [ ] Add core endpoint store abstraction (for example, `DevSeeEndpointStore`) with read/write API for host/port.
+- [ ] Add default store implementation backed by `UserDefaults`.
+- [ ] Persist endpoint when `handleURL(...)` succeeds (`.connected` path only).
+- [ ] During logger center bootstrap, load remembered endpoint and apply it when valid.
+- [ ] Keep deterministic precedence:
+  - remembered endpoint (valid)
+  - configured `serverURL`
+  - package default URL
+- [ ] Ensure malformed store values are ignored safely (no throw/crash).
+- [ ] Keep transport reconfiguration in sync when restored endpoint differs from current in-memory config.
+
+## 19. Tests for Phase 1.2
+
+- [ ] Add unit tests for endpoint store serialization/deserialization.
+- [ ] Add tests proving successful deep-link connect persists host/port.
+- [ ] Add tests proving app-restart bootstrap restores remembered endpoint.
+- [ ] Add tests for invalid remembered endpoint fallback to configured/default URL.
+- [ ] Add tests verifying precedence order for remembered vs configured/default URL.
+- [ ] Add regression tests to ensure `.ignored`/`.failed` deep-link results do not overwrite remembered endpoint.
+
+## 20. Documentation Updates for Phase 1.2
+
+- [ ] Update Swift package spec with remembered endpoint behavior and precedence.
+- [ ] Update phase plan with implementation steps and acceptance criteria for persistence.
+- [ ] Update README integration docs to state that last connected IP/port is auto-restored on restart.
+- [ ] Add short troubleshooting note for clearing stale remembered endpoint during local testing.
+
+## 21. Exit Checklist for Phase 1.2
+
+- [ ] Successful deep-link connection persists endpoint.
+- [ ] Restarting app uses remembered endpoint automatically.
+- [ ] Invalid remembered values fall back safely.
+- [ ] Existing logging APIs and Moya adapter behavior remain compatible.
+- [ ] Core tests pass for endpoint persistence and fallback paths.

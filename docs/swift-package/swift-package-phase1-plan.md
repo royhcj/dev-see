@@ -1,4 +1,4 @@
-# Swift Package Phase 1.1 Plan (Integration Ergonomics)
+# Swift Package Phase 1.1/1.2 Plan (Integration Ergonomics + Endpoint Persistence)
 
 > Last updated: 2026-02-21
 
@@ -16,6 +16,14 @@ Deliver a Swift SDK update where host apps no longer need to implement:
 
 At the same time, keep Moya as an optional dependency and preserve the existing core API compatibility.
 
+## 1.1 Phase 1.2 Goal
+
+Deliver a follow-up SDK update where host apps no longer need to persist DevSee server endpoint state themselves:
+
+1. SDK remembers the last successful connection endpoint (IP + port).
+2. SDK restores that endpoint automatically when app restarts.
+3. SDK still falls back safely to configured/default URL when remembered value is unavailable or invalid.
+
 ---
 
 ## 2. Problems Found in Real Integration
@@ -24,6 +32,7 @@ At the same time, keep Moya as an optional dependency and preserve the existing 
 2. App code tracks `startedAt` manually using request-key maps, which is complex and can mismatch for concurrent identical requests.
 3. Moya plugin logic is copied per app.
 4. `requestBody` is passed redundantly even though body is often present in `URLRequest`.
+5. Connection deep-link endpoint is currently process-memory only, so restart loses the last connected server IP/port.
 
 ---
 
@@ -40,6 +49,20 @@ At the same time, keep Moya as an optional dependency and preserve the existing 
 5. Keep Moya dependency outside the core package.
 6. Update README/docs for one-screen integration flow.
 
+## 3.1 Scope (Phase 1.2)
+
+1. Add persisted endpoint store in core package (default backed by `UserDefaults`).
+2. Persist endpoint on successful `handleURL(_:)` connection.
+3. Restore endpoint during `DevSeeLoggerCenter` bootstrap (`shared` and `configure` path).
+4. Apply precedence:
+   1. remembered endpoint (if valid)
+   2. explicitly configured `serverURL`
+   3. package default URL (`http://127.0.0.1:9090`)
+5. Keep persistence resilient:
+   1. ignore malformed stored values
+   2. avoid crashes/throws on read/write failures
+6. Update docs to communicate restart behavior clearly.
+
 ---
 
 ## 4. Out of Scope (Phase 1.1)
@@ -49,6 +72,8 @@ At the same time, keep Moya as an optional dependency and preserve the existing 
 3. Bonjour or dynamic server discovery changes.
 4. Advanced metrics/redirect-chain capture.
 5. Non-Moya adapters (Alamofire, gRPC) in the same milestone.
+6. Endpoint profile switching UI or multiple remembered endpoints.
+7. Cross-device endpoint sync.
 
 ---
 
@@ -97,6 +122,23 @@ This keeps binary size and dependency graph clean for non-Moya users.
 2. Add deep-link setup snippet using `DevSeeLoggerCenter.handleURL`.
 3. Add minimal integration snippet (core-only and Moya variants).
 
+## Step 5: Connection endpoint persistence (Phase 1.2)
+
+1. Add endpoint persistence abstraction in core package:
+   1. host + port serialize/deserialize
+   2. default storage via `UserDefaults`
+2. On successful deep-link connect:
+   1. update in-memory logger configuration
+   2. persist endpoint for next launch
+3. On bootstrap:
+   1. attempt to load remembered endpoint
+   2. validate host/port and rebuild server URL
+   3. apply precedence/fallback rules
+4. Add tests for:
+   1. successful persist and restore
+   2. invalid stored value fallback
+   3. precedence correctness
+
 ---
 
 ## 7. Acceptance Criteria
@@ -110,6 +152,8 @@ This keeps binary size and dependency graph clean for non-Moya users.
 3. Existing `log(...)` callers continue to work.
 4. `requestBody` fallback works and is covered by tests.
 5. Concurrency tests cover multiple in-flight identical requests.
+6. After successful `handleURL(_:)`, endpoint is restored after app restart without app-side persistence code.
+7. Invalid remembered endpoint data does not crash and falls back to configured/default URL.
 
 ---
 
@@ -121,6 +165,8 @@ This keeps binary size and dependency graph clean for non-Moya users.
    Mitigation: enforce package split and CI check dependency graph.
 3. Risk: migration confusion for current adopters.
    Mitigation: publish a short migration table with before/after snippets.
+4. Risk: stale remembered endpoint can cause failed sends after network changes.
+   Mitigation: preserve deep-link reconnect flow and safe fallback behavior.
 
 ---
 
