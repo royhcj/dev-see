@@ -7,3 +7,6 @@
 [submodule "packages/dart/dev-see-logger-dio-dart"]
 	path = packages/dart/dev-see-logger-dio-dart
 	url = https://github.com/royhcj/dev-see-logger-dio-dart.git
+[submodule "packages/dart/dev-see-logger-dart"]
+	path = packages/dart/dev-see-logger-dart
+	url = https://github.com/royhcj/dev-see-logger-dart.git
