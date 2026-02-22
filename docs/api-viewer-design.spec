@@ -294,6 +294,7 @@ Integration plan:
 1. Try-It-Out sends a real request and displays response status, headers, and body.
 1. Generated cURL is available and copyable.
 1. Error states (invalid spec, network failure, CORS issue) are clearly displayed.
+1. In `API Log Viewer`, adjacent logs with timestamp gaps of `>= 5 seconds` are visually separated in the list.
 
 ---
 

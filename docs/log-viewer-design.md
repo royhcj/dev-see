@@ -80,6 +80,7 @@ Each item in the list shows:
   - 4xx: Yellow
   - 5xx: Red
 - **Duration** - Response time in milliseconds (optional)
+- **Time Gap Separator** - Render a separator line between adjacent log items when they are `>= 5 seconds` apart based on timestamp difference
 
 ### Sorting
 - Default: Newest logs at the top

@@ -12,6 +12,7 @@
    */
 
   import { logsStore } from '../stores/logs.svelte.js';
+  import { shouldRenderTimeSeparator } from '../lib/log-list-separators.js';
 
   /**
    * Returns a color class based on HTTP status code
@@ -77,7 +78,14 @@
         <small>Send API requests to see them here</small>
       </div>
     {:else}
-      {#each logsStore.filteredLogs as log (log.id)}
+      {#each logsStore.filteredLogs as log, index (log.id)}
+        {#if shouldRenderTimeSeparator(logsStore.filteredLogs[index - 1], log)}
+          <div
+            class="log-gap-separator"
+            role="separator"
+            aria-label="Time gap of at least N seconds between logs"
+          ></div>
+        {/if}
         <button
           class="log-item"
           class:selected={logsStore.selectedLogId === log.id}
@@ -160,6 +168,13 @@
     transition: all 0.15s ease;
     text-align: left;
     font-family: inherit;
+  }
+
+  .log-gap-separator {
+    height: 1px;
+    margin: 0.4rem 1rem;
+    background: var(--bg-secondary, #f5f5f5);
+    border-top: 1px solid var(--border-color, #ddd);
   }
 
   .log-item:hover {
