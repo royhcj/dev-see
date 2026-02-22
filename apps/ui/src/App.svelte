@@ -28,6 +28,7 @@
   import { config, logConfig } from './lib/config';
 
   let activeTab: TopTab = 'logs';
+  const showSpecTab = false;
   let isConnectModalOpen = false;
 
   function handleTabChange(event: CustomEvent<TopTab>) {
@@ -78,7 +79,7 @@
   <!-- Header -->
   <header class="app-header">
     <h1>🔍 dev-see</h1>
-    <TopTabs activeTab={activeTab} variant="header" on:change={handleTabChange} />
+    <TopTabs activeTab={activeTab} showSpecTab={showSpecTab} variant="header" on:change={handleTabChange} />
     <div class="header-actions">
       <button type="button" class="connect-button" on:click={openConnectModal}>Connect App</button>
       {#if config.isTauriApp}
@@ -89,7 +90,7 @@
     </div>
   </header>
 
-  {#if activeTab === 'logs'}
+  {#if activeTab === 'logs' || !showSpecTab}
     <!-- Main Content -->
     <main class="app-main">
       <!-- Left Panel: Log List -->

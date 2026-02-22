@@ -5,6 +5,7 @@
 
   export let activeTab: TopTab = 'logs';
   export let variant: 'default' | 'header' = 'default';
+  export let showSpecTab = false;
 
   const dispatch = createEventDispatcher<{ change: TopTab }>();
 
@@ -26,15 +27,17 @@
     >
       API Log Viewer
     </button>
-    <button
-      type="button"
-      role="tab"
-      aria-selected={activeTab === 'spec'}
-      class:active={activeTab === 'spec'}
-      on:click={() => selectTab('spec')}
-    >
-      API Spec Viewer
-    </button>
+    {#if showSpecTab}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={activeTab === 'spec'}
+        class:active={activeTab === 'spec'}
+        on:click={() => selectTab('spec')}
+      >
+        API Spec Viewer
+      </button>
+    {/if}
   </div>
 </nav>
 
