@@ -5,8 +5,8 @@
  * preserving existing browser behavior.
  */
 
-const DEFAULT_DESKTOP_SERVER_URL = 'http://localhost:9090';
-const DEFAULT_DESKTOP_WS_URL = 'ws://localhost:9090/ws';
+const DEFAULT_DESKTOP_SERVER_URL = 'http://127.0.0.1:9090';
+const DEFAULT_DESKTOP_WS_URL = 'ws://127.0.0.1:9090/ws';
 const DEFAULT_DEV_SERVER_URL = 'http://localhost:9090';
 const DEFAULT_DEV_WS_URL = 'ws://localhost:9090/ws';
 

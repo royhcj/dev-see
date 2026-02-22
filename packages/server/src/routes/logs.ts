@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'node:crypto';
 import type { LogEntry, IncomingLogEntry } from '../models.js';
 import type { RingBuffer } from '../storage/ring-buffer.js';
 import { validateLogEntry } from '../utils/validation.js';
@@ -40,7 +40,7 @@ export async function logsRoutes(
 
     // Create the complete log entry with server-generated fields
     const logEntry: LogEntry = {
-      id: nanoid(), // Generate short unique ID (e.g., "V1StGXR8_Z5jdHi6B")
+      id: randomUUID(), // Generate a stable unique ID for each captured log.
       timestamp: new Date().toISOString(), // Current time in ISO format
       ...request.body, // Spread the validated incoming data
     };

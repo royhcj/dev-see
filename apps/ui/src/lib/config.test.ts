@@ -21,7 +21,7 @@ describe('runtime config resolution', () => {
     expect(config.wsUrl).toBe('ws://127.0.0.1:9191/ws');
   });
 
-  it('defaults desktop target to localhost backend', () => {
+  it('defaults desktop target to loopback backend', () => {
     const config = resolveConfig({
       env: {
         MODE: 'production',
@@ -32,8 +32,8 @@ describe('runtime config resolution', () => {
     });
 
     expect(config.runtimeTarget).toBe('desktop');
-    expect(config.serverUrl).toBe('http://localhost:9090');
-    expect(config.wsUrl).toBe('ws://localhost:9090/ws');
+    expect(config.serverUrl).toBe('http://127.0.0.1:9090');
+    expect(config.wsUrl).toBe('ws://127.0.0.1:9090/ws');
   });
 
   it('keeps browser development defaults unchanged', () => {

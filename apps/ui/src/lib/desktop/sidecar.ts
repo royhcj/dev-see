@@ -1,5 +1,5 @@
 import { Command } from '@tauri-apps/plugin-shell';
-import { config, isTauri } from '../config';
+import { config } from '../config';
 
 const SIDECAR_NAME = 'binaries/dev-see-server';
 const SIDECAR_ARGS = ['--host', '127.0.0.1', '--port', '9090'];
@@ -55,7 +55,7 @@ async function startSidecar(): Promise<void> {
 }
 
 export async function ensureDesktopSidecar(): Promise<void> {
-  if (!isTauri()) {
+  if (!config.isTauriApp) {
     return;
   }
 
