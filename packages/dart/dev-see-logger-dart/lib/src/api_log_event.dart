@@ -75,7 +75,7 @@ class ApiLogEvent {
   final String? error;
 
   Map<String, Object?> toJson() {
-    return {
+    final json = <String, Object?>{
       'type': type,
       'appId': appId,
       'method': method,
@@ -83,12 +83,25 @@ class ApiLogEvent {
       'statusCode': statusCode,
       'duration': duration,
       'timestamp': timestamp,
-      'requestHeaders': requestHeaders,
-      'requestBody': requestBody,
-      'responseHeaders': responseHeaders,
-      'responseBody': responseBody,
-      'error': error,
     };
+
+    if (requestHeaders != null) {
+      json['requestHeaders'] = requestHeaders;
+    }
+    if (requestBody != null) {
+      json['requestBody'] = requestBody;
+    }
+    if (responseHeaders != null) {
+      json['responseHeaders'] = responseHeaders;
+    }
+    if (responseBody != null) {
+      json['responseBody'] = responseBody;
+    }
+    if (error != null) {
+      json['error'] = error;
+    }
+
+    return json;
   }
 
   static int _durationMilliseconds({

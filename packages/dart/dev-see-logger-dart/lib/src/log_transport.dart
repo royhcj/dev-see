@@ -38,11 +38,15 @@ class LogTransport implements LogTransporting {
   @override
   Future<void> send({required ApiLogEvent event}) async {
     final request = makeRequest(event: event);
-    await _client.post(
+    final response = await _client.post(
       request.uri,
       headers: request.headers,
       body: request.bodyBytes,
     );
+    assert(() {
+      print('DevSee logs status=${response.statusCode} body=${response.body}');
+      return true;
+    }());
   }
 
   LogTransportRequest makeRequest({required ApiLogEvent event}) {
