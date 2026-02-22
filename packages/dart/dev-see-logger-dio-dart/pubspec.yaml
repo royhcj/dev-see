@@ -1,0 +1,16 @@
+name: dev_see_logger_dio
+description: Dio interceptor adapter for dev_see_logger.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  dev_see_logger:
+    path: ../dev-see-logger-dart
+  dio: ^5.9.0
+
+dev_dependencies:
+  test: ^1.25.8
+  lints: ^5.1.1

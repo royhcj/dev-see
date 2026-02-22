@@ -1,0 +1,14 @@
+name: dev_see_logger
+description: Core DevSee API logger for Dart and Flutter apps.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.6.0 <4.0.0'
+
+dependencies:
+  http: ^1.2.2
+
+dev_dependencies:
+  test: ^1.25.8
+  lints: ^5.1.1
