@@ -1,0 +1,11 @@
+{
+  "name": "desktop",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "sidecar:prepare": "pnpm --filter server sidecar:build && node ./scripts/rename-sidecar.mjs",
+    "dev": "cargo tauri dev",
+    "build": "cargo tauri build",
+    "build:debug": "cargo tauri build --debug"
+  }
+}

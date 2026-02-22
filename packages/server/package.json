@@ -1,0 +1,44 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Fastify server for dev-see log viewer",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "sidecar:build": "pnpm run build && node ./scripts/build-sidecar.mjs",
+    "sidecar:pkg:arm64": "pkg ./dist/index.js --target node20-macos-arm64 --output ../../apps/desktop/.sidecar/dev-see-server-macos-arm64",
+    "sidecar:pkg:x64": "pkg ./dist/index.js --target node20-macos-x64 --output ../../apps/desktop/.sidecar/dev-see-server-macos-x64",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "lint": "eslint src/**/*.ts"
+  },
+  "keywords": [
+    "fastify",
+    "logs",
+    "websocket"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/static": "^9.0.0",
+    "@fastify/websocket": "^11.2.0",
+    "dotenv": "^17.2.4",
+    "fastify": "^5.7.4",
+    "nanoid": "^5.1.6"
+  },
+  "devDependencies": {
+    "@yao-pkg/pkg": "^6.6.0",
+    "@types/node": "^25.2.3",
+    "@vitest/ui": "^4.0.18",
+    "eslint": "^10.0.0",
+    "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+RUN corepack enable
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/ui/package.json apps/ui/package.json
+COPY packages/server/package.json packages/server/package.json
+
+RUN pnpm install --frozen-lockfile
+
+COPY . .
+
+EXPOSE 5173
+
+CMD ["pnpm", "--filter", "ui", "dev", "--host", "0.0.0.0", "--port", "5173"]

@@ -1,0 +1,32 @@
+services:
+  server:
+    build:
+      context: .
+      dockerfile: packages/server/Dockerfile
+    ports:
+      - "9090:9090"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 9090
+    volumes:
+      - .:/app
+      - server_node_modules:/app/node_modules
+
+  ui:
+    build:
+      context: .
+      dockerfile: apps/ui/Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    environment:
+      VITE_SERVER_URL: http://localhost:9090
+      VITE_WS_URL: ws://localhost:9090/ws
+    volumes:
+      - .:/app
+      - ui_node_modules:/app/node_modules
+
+volumes:
+  server_node_modules:
+  ui_node_modules:

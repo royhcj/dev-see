@@ -1,0 +1,12 @@
+[submodule "packages/swift/dev-see-logger-swift"]
+	path = packages/swift/dev-see-logger-swift
+	url = https://github.com/royhcj/dev-see-logger-swift.git
+[submodule "packages/swift/dev-see-logger-moya-swift"]
+	path = packages/swift/dev-see-logger-moya-swift
+	url = https://github.com/royhcj/dev-see-logger-moya-swift.git
+[submodule "packages/dart/dev-see-logger-dio-dart"]
+	path = packages/dart/dev-see-logger-dio-dart
+	url = https://github.com/royhcj/dev-see-logger-dio-dart.git
+[submodule "packages/dart/dev-see-logger-dart"]
+	path = packages/dart/dev-see-logger-dart
+	url = https://github.com/royhcj/dev-see-logger-dart.git
