@@ -1,0 +1,26 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "enables the default permissions",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    {
+      "identifier": "shell:allow-spawn",
+      "allow": [
+        {
+          "name": "binaries/dev-see-server",
+          "sidecar": true,
+          "args": [
+            "--host",
+            "0.0.0.0",
+            "--port",
+            "9090"
+          ]
+        }
+      ]
+    }
+  ]
+}

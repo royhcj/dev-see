@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { nanoid } from 'nanoid';
+import { randomUUID } from 'node:crypto';
 import type { LogEntry, IncomingLogEntry } from '../models.js';
 import type { RingBuffer } from '../storage/ring-buffer.js';
 import { validateLogEntry } from '../utils/validation.js';
@@ -40,7 +40,7 @@ export async function logsRoutes(
 
     // Create the complete log entry with server-generated fields
     const logEntry: LogEntry = {
-      id: nanoid(), // Generate short unique ID (e.g., "V1StGXR8_Z5jdHi6B")
+      id: randomUUID(), // Generate a stable unique ID for each captured log.
       timestamp: new Date().toISOString(), // Current time in ISO format
       ...request.body, // Spread the validated incoming data
     };
@@ -50,7 +50,7 @@ export async function logsRoutes(
 
     // Broadcast to all connected WebSocket clients
     // Note: The WebSocket route will handle this via fastify.websocketServer
-    fastify.websocketServer.clients.forEach((client) => {
+    fastify.websocketServer.clients.forEach((client: { readyState: number; send: (payload: string) => void }) => {
       if (client.readyState === 1) { // 1 = OPEN
         client.send(JSON.stringify({ type: 'new-log', data: logEntry }));
       }
@@ -116,7 +116,7 @@ export async function logsRoutes(
    * DELETE /api/logs
    * Clear all logs (useful for testing)
    */
-  fastify.delete('/api/logs', async (request, reply) => {
+  fastify.delete('/api/logs', async (_request, reply) => {
     buffer.clear();
     return reply.send({ message: 'All logs cleared' });
   });

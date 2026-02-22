@@ -27,7 +27,7 @@ export async function wsRoutes(
    * - { type: 'initial-logs', data: [...logs] } - All existing logs on connect
    * - { type: 'new-log', data: {...log} } - New log entry (sent from POST /api/logs)
    */
-  fastify.get('/ws', { websocket: true }, (socket, request) => {
+  fastify.get('/ws', { websocket: true }, (socket, _request) => {
     // Log new connection
     fastify.log.info('WebSocket client connected');
 
@@ -61,7 +61,7 @@ export async function wsRoutes(
      * Handle incoming messages from client
      * Future: Could implement filtering, search, etc.
      */
-    socket.on('message', (message) => {
+    socket.on('message', (message: Buffer) => {
       try {
         const data = JSON.parse(message.toString());
         fastify.log.info({ data }, 'WebSocket message received');
@@ -102,7 +102,7 @@ export async function wsRoutes(
     /**
      * Handle errors
      */
-    socket.on('error', (error) => {
+    socket.on('error', (error: Error) => {
       fastify.log.error({ error }, 'WebSocket error');
     });
   });

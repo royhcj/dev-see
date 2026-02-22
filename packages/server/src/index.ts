@@ -18,14 +18,67 @@ import { connectionRoutes } from './routes/connection.js';
  * Uses process.env (Node.js global) with fallback defaults
  */
 function loadConfig(): ServerConfig {
+  const cli = parseCliArgs(process.argv.slice(2));
+
   return {
-    port: parseInt(process.env.PORT || '9090', 10),
-    host: process.env.HOST || '0.0.0.0',
-    maxLogs: parseInt(process.env.MAX_LOGS || '1000', 10),
-    logLevel: process.env.LOG_LEVEL || 'info',
+    port: cli.port ?? parseInt(process.env.PORT || '9090', 10),
+    host: cli.host ?? process.env.HOST ?? '0.0.0.0',
+    maxLogs: cli.maxLogs ?? parseInt(process.env.MAX_LOGS || '1000', 10),
+    logLevel: cli.logLevel ?? process.env.LOG_LEVEL ?? 'info',
     corsEnabled: process.env.CORS_ENABLED !== 'false', // Default true
     uiDistPath: process.env.UI_DIST_PATH || '../../apps/ui/dist',
   };
+}
+
+interface CliArgs {
+  host?: string;
+  port?: number;
+  maxLogs?: number;
+  logLevel?: string;
+}
+
+function parseCliArgs(args: string[]): CliArgs {
+  const values: CliArgs = {};
+
+  for (let i = 0; i < args.length; i++) {
+    const key = args[i];
+    const value = args[i + 1];
+
+    if (!value) {
+      continue;
+    }
+
+    if (key === '--host') {
+      values.host = value;
+      i++;
+      continue;
+    }
+
+    if (key === '--port') {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isNaN(parsed)) {
+        values.port = parsed;
+      }
+      i++;
+      continue;
+    }
+
+    if (key === '--max-logs') {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isNaN(parsed)) {
+        values.maxLogs = parsed;
+      }
+      i++;
+      continue;
+    }
+
+    if (key === '--log-level') {
+      values.logLevel = value;
+      i++;
+    }
+  }
+
+  return values;
 }
 
 /**
