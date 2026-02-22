@@ -15,8 +15,8 @@ Current repository status:
 
 ## 1. One-Time Prerequisites (User Machine)
 
-- [ ] Install Docker Desktop (macOS/Windows) or Docker Engine + Compose plugin (Linux).
-- [ ] Install Git.
+- [x] Install Docker Desktop (macOS/Windows) or Docker Engine + Compose plugin (Linux).
+- [x] Install Git.
 
 Verify tools:
 
@@ -34,7 +34,7 @@ What this does:
 
 ## 2. Get the Project
 
-- [ ] Clone and enter the repository.
+- [x] Clone and enter the repository.
 
 ```bash
 git clone <repository-url>
@@ -48,7 +48,7 @@ What this does:
 
 ## 3. Create Docker Files for This Project (One-Time)
 
-- [ ] Create `.dockerignore`.
+- [x] Create `.dockerignore`.
 
 ```bash
 cat > .dockerignore <<'EOF'
@@ -68,7 +68,7 @@ What this does:
 1. Creates ignore rules so Docker builds do not send unnecessary files.
 2. Speeds up builds and reduces image size.
 
-- [ ] Create backend Dockerfile.
+- [x] Create backend Dockerfile.
 
 ```bash
 cat > packages/server/Dockerfile <<'EOF'
@@ -98,7 +98,7 @@ What this does:
 2. Installs dependencies with pnpm in container.
 3. Starts backend in dev/watch mode.
 
-- [ ] Create frontend Dockerfile.
+- [x] Create frontend Dockerfile.
 
 ```bash
 cat > apps/ui/Dockerfile <<'EOF'
@@ -127,7 +127,7 @@ What this does:
 1. Builds UI dev environment in container.
 2. Runs Vite on `0.0.0.0` so host browser can access it.
 
-- [ ] Create compose file.
+- [x] Create compose file.
 
 ```bash
 cat > compose.yaml <<'EOF'
@@ -173,7 +173,7 @@ What this does:
 3. Exposes ports to your host machine.
 4. Mounts source code for live reload.
 
-- [ ] Validate compose config.
+- [x] Validate compose config.
 
 ```bash
 docker compose config
@@ -185,7 +185,7 @@ What this does:
 
 ## 4. First Run with Docker
 
-- [ ] Build images and start server + UI.
+- [x] Build images and start server + UI.
 
 ```bash
 docker compose up --build
@@ -205,7 +205,7 @@ Verify it works:
 
 ## 5. Test the API Flow
 
-- [ ] Send a sample log to backend.
+- [x] Send a sample log to backend.
 
 ```bash
 curl -X POST http://localhost:9090/api/logs \
@@ -225,7 +225,7 @@ What this does:
 
 ## 6. Stop Services
 
-- [ ] Stop running containers.
+- [x] Stop running containers.
 
 If running in attached mode (`docker compose up` in foreground):
 
@@ -245,7 +245,7 @@ What this does:
 
 ## 7. Daily Commands (After First Build)
 
-- [ ] Start services again:
+- [x] Start services again:
 
 ```bash
 docker compose up
@@ -256,7 +256,7 @@ What this does:
 1. Reuses previously built images.
 2. Starts services quickly.
 
-- [ ] Run in background:
+- [x] Run in background:
 
 ```bash
 docker compose up -d
@@ -267,7 +267,7 @@ What this does:
 1. Starts containers in detached mode.
 2. Returns terminal control immediately.
 
-- [ ] Watch logs:
+- [x] Watch logs:
 
 ```bash
 docker compose logs -f
@@ -277,7 +277,7 @@ What this does:
 
 1. Tails live logs from all services.
 
-- [ ] Restart one service only:
+- [x] Restart one service only:
 
 ```bash
 docker compose restart ui
@@ -290,7 +290,7 @@ What this does:
 
 ## 8. Rebuild and Cleanup Commands
 
-- [ ] Rebuild after dependency changes:
+- [x] Rebuild after dependency changes:
 
 ```bash
 docker compose up --build
@@ -300,7 +300,7 @@ What this does:
 
 1. Rebuilds images to include dependency or Dockerfile changes.
 
-- [ ] Remove containers, networks, and volumes (full reset):
+- [x] Remove containers, networks, and volumes (full reset):
 
 ```bash
 docker compose down --volumes --remove-orphans
