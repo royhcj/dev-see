@@ -2,6 +2,7 @@
 
 > Based on: `/Users/roy/dev/projects/dev-see/docs/tauri/tauri-plan.md`
 > Last updated: 2026-02-22
+> Official sidecar reference: https://v2.tauri.app/learn/sidecar-nodejs/
 
 ## 0. Prerequisites
 
@@ -64,13 +65,19 @@ Verification notes (2026-02-22):
 
 ## 3. Backend Build and Sidecar Packaging
 
-- [ ] Add repeatable backend production build step (`packages/server`).
-- [ ] Decide and document Node runtime bundling strategy for sidecar.
-- [ ] Add sidecar artifact to Tauri bundle resources/binaries.
-- [ ] Configure sidecar command and arguments in Tauri config.
-- [ ] Implement sidecar startup on app launch.
+- [ ] Add `pkg` dev dependency and sidecar build scripts in `packages/server/package.json`.
+- [ ] Configure `pkg` output for macOS targets (`aarch64`, `x86_64`) from backend entrypoint.
+- [ ] Add deterministic rename/copy script (example: `apps/desktop/scripts/rename-sidecar.mjs`) to map `pkg` outputs into:
+  - `apps/desktop/src-tauri/binaries/dev-see-server-aarch64-apple-darwin`
+  - `apps/desktop/src-tauri/binaries/dev-see-server-x86_64-apple-darwin`
+- [ ] Update `apps/desktop/src-tauri/tauri.conf.json` with `bundle.externalBin: ["binaries/dev-see-server"]`.
+- [ ] Add `tauri-plugin-shell` Rust dependency and initialize plugin in Tauri builder.
+- [ ] Add `@tauri-apps/plugin-shell` dependency for desktop frontend/runtime sidecar calls.
+- [ ] Update `apps/desktop/src-tauri/capabilities/default.json` with `shell:allow-execute` for `binaries/dev-see-server` and `sidecar: true`.
+- [ ] Implement sidecar startup with `Command.sidecar("binaries/dev-see-server", args)`.
 - [ ] Implement sidecar shutdown on app quit.
 - [ ] Add backend health-check handshake before marking app ready.
+- [ ] Remove/retire non-official production runtime flow based on shipping a standalone `resources/node` binary.
 
 ## 4. Runtime Reliability
 
@@ -84,7 +91,7 @@ Verification notes (2026-02-22):
 
 - [ ] Set desktop backend bind host to `127.0.0.1`.
 - [ ] Minimize Tauri capabilities/permissions to least privilege.
-- [ ] Review and remove unused filesystem/shell/network permissions.
+- [ ] Review and remove unused filesystem/shell/network permissions (leave only explicit sidecar execute permission where needed).
 - [ ] Configure App Sandbox entitlements required by runtime behavior.
 - [ ] Verify sidecar execution under sandbox constraints.
 
@@ -109,6 +116,7 @@ Verification notes (2026-02-22):
 
 - [ ] Fresh install launch test on clean macOS user account.
 - [ ] Confirm sidecar starts and backend health endpoint responds.
+- [ ] Confirm sidecar executable path resolves from `binaries/dev-see-server` on both Apple Silicon and Intel builds.
 - [ ] Confirm UI can send/receive logs via HTTP + WebSocket.
 - [ ] Confirm graceful quit terminates sidecar.
 - [ ] Confirm relaunch works after forced sidecar failure.

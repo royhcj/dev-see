@@ -2,6 +2,7 @@
 
 > Based on: `/Users/roy/dev/projects/dev-see/docs/tauri/tauri-spec.md`
 > Last updated: 2026-02-22
+> Official sidecar reference: https://v2.tauri.app/learn/sidecar-nodejs/
 
 ## Overview
 
@@ -26,7 +27,8 @@ Steps:
 1. Verify Node.js/pnpm versions used by workspace.
 2. Verify Rust toolchain and Tauri CLI installation path.
 3. Verify Xcode + Apple developer signing prerequisites.
-4. Record current app run/build commands for comparison.
+4. Verify Node sidecar packaging tool (`pkg`) and current backend build script.
+5. Record current app run/build commands for comparison.
 
 Done when:
 
@@ -77,21 +79,25 @@ Done when:
 
 Objective:
 
-1. Launch and manage backend as sidecar from Tauri lifecycle.
+1. Launch and manage backend using the official Tauri Node sidecar pattern.
 
 Steps:
 
-1. Build backend (`packages/server/dist`) for distribution.
-2. Decide sidecar runtime strategy:
-   - bundle Node runtime + server entrypoint, or
-   - bundle executable wrapper that launches Node server.
-3. Configure Tauri sidecar declaration and startup arguments.
-4. Implement startup health check and retry policy.
-5. Implement graceful sidecar termination on app exit.
+1. Build backend (`packages/server/dist`) and package with `pkg`.
+2. Add rename/move script that writes sidecar files to `apps/desktop/src-tauri/binaries` with target suffix:
+   - `dev-see-server-aarch64-apple-darwin`
+   - `dev-see-server-x86_64-apple-darwin`
+3. Configure `apps/desktop/src-tauri/tauri.conf.json` with `bundle.externalBin: ["binaries/dev-see-server"]`.
+4. Add `tauri-plugin-shell` in Rust and `@tauri-apps/plugin-shell` in JS.
+5. Configure capability permission `shell:allow-execute` with `sidecar: true` for `binaries/dev-see-server` only.
+6. Implement `Command.sidecar("binaries/dev-see-server", args)` startup flow.
+7. Implement startup health check and bounded retry policy.
+8. Implement graceful sidecar termination on app exit.
 
 Done when:
 
-1. Packaged app starts sidecar automatically and backend APIs respond.
+1. Packaged app starts official sidecar automatically and backend APIs respond.
+2. No custom `resources/node` runtime path is required for production launch.
 
 ---
 
@@ -104,7 +110,7 @@ Objective:
 Steps:
 
 1. Enforce localhost bind (`127.0.0.1`) for desktop profile.
-2. Minimize Tauri permissions/capabilities.
+2. Minimize Tauri permissions/capabilities (`shell:allow-execute` for sidecar only).
 3. Add explicit sidecar failure handling UI and logs.
 4. Validate no prohibited dynamic code/download behavior.
 5. Add regression smoke tests for startup/quit cycles.
@@ -161,8 +167,8 @@ Done when:
 
 1. Sidecar + sandbox compatibility issues.
    Mitigation: test signing/sandbox early in Phase 3 instead of waiting for final release.
-2. Packaging Node runtime complexity.
-   Mitigation: choose one runtime strategy early and automate in scripts.
+2. `pkg` output naming mismatch with Tauri target naming.
+   Mitigation: keep a deterministic rename script and enforce in CI.
 3. Port conflicts on user machine.
    Mitigation: deterministic fallback strategy and startup diagnostics.
 4. App review rejection due to policy mismatch.
