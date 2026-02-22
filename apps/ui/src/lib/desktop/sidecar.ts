@@ -2,7 +2,7 @@ import { Command } from '@tauri-apps/plugin-shell';
 import { config } from '../config';
 
 const SIDECAR_NAME = 'binaries/dev-see-server';
-const SIDECAR_ARGS = ['--host', '127.0.0.1', '--port', '9090'];
+const SIDECAR_ARGS = ['--host', '0.0.0.0', '--port', '9090'];
 const STARTUP_TIMEOUT_MS = 10000;
 const STARTUP_POLL_INTERVAL_MS = 200;
 
