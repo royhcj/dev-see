@@ -1,67 +1,108 @@
 # dev-see Documentation Index
 
-This index catalogs the design specifications and planning documents for the dev-see project.
+This index catalogs the design, planning, and task documents for dev-see.
 
-## Current Implementation (Phase 1)
+## Core Phase 1
 
 ### [overview.md](./overview.md)
-High-level overview of Phase 1: the minimal viable product focused on a Mac desktop application for viewing API logs in real-time.
-
-**Covers:**
-- Project scope and goals
-- Functional & non-functional requirements
-- High-level architecture diagram
-- User flow and workflows
-- Deliverables and success metrics
-- Timeline estimates and technical decisions
+High-level product scope, requirements, architecture, workflow, and delivery goals.
 
 ### [tech-stack.md](./tech-stack.md)
-Detailed technical architecture and technology choices for Phase 1.
+Technical architecture and stack decisions for the Phase 1 implementation.
 
-**Covers:**
-- Stack overview (Tauri, Svelte, Fastify)
-- Desktop app setup (Tauri configuration, backend integration)
-- Frontend structure (Svelte components, reactive stores, Tailwind)
-- Backend API (Fastify server, in-memory ring buffer, WebSocket)
-- Project structure and monorepo layout
-- Developer workflow and build process
-- Performance targets and security considerations
+## Log Viewer
 
-### [log-server-design.md](./log-server-design.md)
+### [log-viewer/log-server-design.md](./log-viewer/log-server-design.md)
 Backend server architecture and API specification.
 
-**Covers:**
-- Fastify server architecture and data flow
-- HTTP POST `/api/logs` endpoint specification
-- WebSocket `/ws` streaming protocol
-- In-memory ring buffer storage
-- Data models and validation
-- Error handling and security
-- Performance considerations
-- Testing strategies
-- Future enhancements
-
-### [log-viewer-design.md](./log-viewer-design.md)
+### [log-viewer/log-viewer-design.md](./log-viewer/log-viewer-design.md)
 UI/UX design specification for the core log viewer component.
 
-**Covers:**
-- Two-pane layout architecture
-- App switcher for filtering logs
-- Log item list with visual indicators
-- Detailed request/response view with tabs
-- Data models for API logs
-- Styling and theme considerations
-- Performance optimizations (virtual scrolling, lazy loading)
-- Future extensibility for other log types
+## Setup Project
 
-## Future Planning
+### [setup-project/setup-project-plan.md](./setup-project/setup-project-plan.md)
+Project bootstrap and setup implementation plan.
 
-See [future-plan/](./future-plan/) for planned extensions beyond Phase 1, including:
-- Phase 2+ architecture and features
-- Mobile SDK roadmap
-- Database and persistence strategies
-- Team collaboration features
+### [setup-project/setup-project-tasks.md](./setup-project/setup-project-tasks.md)
+Actionable setup checklist and execution tasks.
+
+## Docker
+
+### [docker/docker-spec.md](./docker/docker-spec.md)
+Docker development runtime specification.
+
+### [docker/docker-plan.md](./docker/docker-plan.md)
+Implementation plan for Docker-based local development.
+
+### [docker/docker-tasks.md](./docker/docker-tasks.md)
+Task breakdown for Docker setup and usage.
+
+## Tauri Desktop Wrap
+
+### [tauri/tauri-spec.md](./tauri/tauri-spec.md)
+Tauri desktop wrapper specification (macOS app + official Node sidecar).
+
+### [tauri/tauri-structure.md](./tauri/tauri-structure.md)
+Folder and integration structure for Tauri sidecar setup.
+
+### [tauri/tauri-plan.md](./tauri/tauri-plan.md)
+Implementation plan for Tauri integration.
+
+### [tauri/tauri-tasks.md](./tauri/tauri-tasks.md)
+Execution tasks for Tauri desktop wrap delivery.
+
+## API Viewer
+
+### [api-viewer/api-viewer-spec.md](./api-viewer/api-viewer-spec.md)
+API spec viewer design specification.
+
+### [api-viewer/api-viewer-plan.md](./api-viewer/api-viewer-plan.md)
+Implementation plan for the API spec viewer.
+
+### [api-viewer/api-viewer-tasks.md](./api-viewer/api-viewer-tasks.md)
+Task list for building the API spec viewer.
+
+## Connection (QR Code)
+
+### [connection/qrcode-connection-spec.md](./connection/qrcode-connection-spec.md)
+QR code based app connection specification (iOS + QA Mac flow).
+
+### [connection/qrcode-connection-plan.md](./connection/qrcode-connection-plan.md)
+Implementation plan for QR connection workflow.
+
+### [connection/qrcode-connection-tasks.md](./connection/qrcode-connection-tasks.md)
+Task list for QR connection implementation.
+
+## Swift Package
+
+### [swift-package/swift-package-spec.md](./swift-package/swift-package-spec.md)
+Swift logging package specification.
+
+### [swift-package/swift-package-phase1-plan.md](./swift-package/swift-package-phase1-plan.md)
+Phase 1.1/1.2 implementation plan for Swift package integration and persistence.
+
+### [swift-package/swift-package-phase1-tasks.md](./swift-package/swift-package-phase1-tasks.md)
+Task list for Swift package Phase 1 delivery.
+
+## Dart Package
+
+### [dart-package/dart-package-spec.md](./dart-package/dart-package-spec.md)
+Dart logger package specification (core logger + Dio adapter).
+
+### [dart-package/dart-package-plan.md](./dart-package/dart-package-plan.md)
+Implementation plan for Dart package development.
+
+### [dart-package/dart-package-tasks.md](./dart-package/dart-package-tasks.md)
+Task list for Dart package delivery.
+
+## Future Plan
+
+### [future-plan/overview.md](./future-plan/overview.md)
+Longer-horizon product and architecture vision beyond current phase.
+
+### [future-plan/tech-stack.md](./future-plan/tech-stack.md)
+Future-oriented technical stack direction.
 
 ---
 
-**Last updated:** 2026-02-12
+**Last updated:** 2026-02-22
