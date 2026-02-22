@@ -6,6 +6,21 @@
     "main"
   ],
   "permissions": [
-    "core:default"
+    "core:default",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "binaries/dev-see-server",
+          "sidecar": true,
+          "args": [
+            "--host",
+            "127.0.0.1",
+            "--port",
+            "9090"
+          ]
+        }
+      ]
+    }
   ]
 }

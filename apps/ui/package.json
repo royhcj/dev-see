@@ -25,6 +25,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
+    "@tauri-apps/plugin-shell": "^2.3.1",
     "dompurify": "^3.3.1",
     "marked": "^17.0.2",
     "yaml": "^2.8.2"

@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
+    "sidecar:build": "pnpm run build && node ./scripts/build-sidecar.mjs",
+    "sidecar:pkg:arm64": "pkg ./dist/index.js --target node20-macos-arm64 --output ../../apps/desktop/.sidecar/dev-see-server-macos-arm64",
+    "sidecar:pkg:x64": "pkg ./dist/index.js --target node20-macos-x64 --output ../../apps/desktop/.sidecar/dev-see-server-macos-x64",
     "start": "node dist/index.js",
     "test": "vitest",
     "test:ui": "vitest --ui",
@@ -29,6 +32,7 @@
     "nanoid": "^5.1.6"
   },
   "devDependencies": {
+    "@yao-pkg/pkg": "^6.6.0",
     "@types/node": "^25.2.3",
     "@vitest/ui": "^4.0.18",
     "eslint": "^10.0.0",

@@ -50,7 +50,7 @@ export async function logsRoutes(
 
     // Broadcast to all connected WebSocket clients
     // Note: The WebSocket route will handle this via fastify.websocketServer
-    fastify.websocketServer.clients.forEach((client) => {
+    fastify.websocketServer.clients.forEach((client: { readyState: number; send: (payload: string) => void }) => {
       if (client.readyState === 1) { // 1 = OPEN
         client.send(JSON.stringify({ type: 'new-log', data: logEntry }));
       }
@@ -116,7 +116,7 @@ export async function logsRoutes(
    * DELETE /api/logs
    * Clear all logs (useful for testing)
    */
-  fastify.delete('/api/logs', async (request, reply) => {
+  fastify.delete('/api/logs', async (_request, reply) => {
     buffer.clear();
     return reply.send({ message: 'All logs cleared' });
   });

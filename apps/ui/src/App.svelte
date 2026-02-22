@@ -23,6 +23,7 @@
   import Controls from './components/Controls.svelte';
   import SpecViewer from './components/spec/SpecViewer.svelte';
   import ConnectAppModal from './components/connection/ConnectAppModal.svelte';
+  import { ensureDesktopSidecar } from './lib/desktop/sidecar';
   import { initWebSocket } from './lib/websocket.svelte.js';
   import { config, logConfig } from './lib/config';
 
@@ -46,15 +47,30 @@
    * The returned cleanup function disconnects when component unmounts
    */
   onMount(() => {
+    let cleanup = () => {};
+    let disposed = false;
+
     // Log configuration for debugging
     logConfig();
 
-    // Initialize WebSocket and get cleanup function
-    const cleanup = initWebSocket();
+    (async () => {
+      try {
+        await ensureDesktopSidecar();
+      } catch (error) {
+        console.error('Failed to start desktop sidecar:', error);
+      }
+
+      if (!disposed) {
+        cleanup = initWebSocket();
+      }
+    })();
 
     // Return cleanup function to Svelte
     // This runs when the component is destroyed
-    return cleanup;
+    return () => {
+      disposed = true;
+      cleanup();
+    };
   });
 </script>
 
