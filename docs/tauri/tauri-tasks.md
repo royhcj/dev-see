@@ -41,11 +41,11 @@ ls -la "$HOME/Library/MobileDevice/Provisioning Profiles"
 
 ## 1. Tauri Project Scaffold
 
-- [ ] Create desktop app container and initialize Tauri project structure.
-- [ ] Set app name, bundle identifier, and window defaults.
-- [ ] Wire `dev` command to load frontend in desktop window.
-- [ ] Wire `build` command to consume built frontend assets.
-- [ ] Verify minimal Tauri shell launches locally.
+- [x] Create desktop app container and initialize Tauri project structure.
+- [x] Set app name, bundle identifier, and window defaults.
+- [x] Wire `dev` command to load frontend in desktop window.
+- [x] Wire `build` command to consume built frontend assets.
+- [x] Verify minimal Tauri shell launches locally.
 
 ## 2. Frontend Desktop Wiring
 
