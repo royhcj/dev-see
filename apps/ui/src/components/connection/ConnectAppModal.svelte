@@ -17,7 +17,9 @@
   let bundleId = '';
   let copyState: 'idle' | 'copied' | 'error' = 'idle';
   let qrLoadFailed = false;
-  let lastQrImageUrl = '';
+  let qrImageUrl = '';
+  let isGeneratingQrImage = false;
+  let qrGenerationRequestId = 0;
   let previousOpen = false;
   let lanHostOverride = '';
   let isResolvingLanHost = false;
@@ -49,12 +51,15 @@
         serverHost,
         serverPort,
       });
-  $: shouldRenderQrImage = Boolean(deepLink) && !config.isTauriApp;
-  $: qrImageUrl = shouldRenderQrImage ? buildQrCodeImageUrl(deepLink) : '';
-
-  $: if (qrImageUrl !== lastQrImageUrl) {
-    qrLoadFailed = false;
-    lastQrImageUrl = qrImageUrl;
+  $: shouldRenderQrImage = Boolean(deepLink);
+  $: {
+    if (!shouldRenderQrImage) {
+      qrImageUrl = '';
+      qrLoadFailed = false;
+      isGeneratingQrImage = false;
+    } else {
+      void generateQrCodeImage(deepLink);
+    }
   }
 
   $: if (open && !previousOpen) {
@@ -134,6 +139,33 @@
     }
   }
 
+  async function generateQrCodeImage(nextDeepLink: string) {
+    const requestId = ++qrGenerationRequestId;
+    isGeneratingQrImage = true;
+    qrLoadFailed = false;
+
+    try {
+      const generatedImageUrl = await buildQrCodeImageUrl(nextDeepLink);
+      if (requestId !== qrGenerationRequestId || nextDeepLink !== deepLink) {
+        return;
+      }
+
+      qrImageUrl = generatedImageUrl;
+    } catch (error) {
+      console.error('Failed to generate QR code:', error);
+      if (requestId !== qrGenerationRequestId || nextDeepLink !== deepLink) {
+        return;
+      }
+
+      qrImageUrl = '';
+      qrLoadFailed = true;
+    } finally {
+      if (requestId === qrGenerationRequestId && nextDeepLink === deepLink) {
+        isGeneratingQrImage = false;
+      }
+    }
+  }
+
 </script>
 
 <svelte:window on:keydown={onWindowKeyDown} />
@@ -194,11 +226,8 @@
           <h3>Scan QR Code</h3>
           {#if !deepLink}
             <p class="hint">Enter a valid Bundle ID to generate a QR code.</p>
-          {:else if config.isTauriApp}
-            <p class="hint">
-              QR preview is disabled in desktop builds to avoid external runtime dependencies.
-              Use "Copy Deep Link" and share it manually.
-            </p>
+          {:else if isGeneratingQrImage}
+            <p class="hint">Generating QR code...</p>
           {:else if qrLoadFailed}
             <p class="error">QR generation failed. Copy and share the deep link manually.</p>
           {:else}
@@ -207,9 +236,6 @@
               alt="QR code for iOS app deep link connection"
               width="220"
               height="220"
-              on:error={() => {
-                qrLoadFailed = true;
-              }}
             />
           {/if}
         </div>

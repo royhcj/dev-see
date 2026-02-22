@@ -1,3 +1,5 @@
+import * as QRCode from 'qrcode';
+
 export const DEEP_LINK_SCHEME_PREFIX = 'dev-see-';
 export const DEEP_LINK_ACTION = 'connect';
 export const DEEP_LINK_SERVER_IP_PARAM = 'server_ip';
@@ -70,8 +72,11 @@ export function buildConnectionDeepLink(params: BuildDeepLinkParams): string {
   return `${DEEP_LINK_SCHEME_PREFIX}${bundleId}://${DEEP_LINK_ACTION}?${DEEP_LINK_SERVER_IP_PARAM}=${encodeURIComponent(serverHost)}&${DEEP_LINK_SERVER_PORT_PARAM}=${encodeURIComponent(serverPort)}`;
 }
 
-export function buildQrCodeImageUrl(deepLink: string): string {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(deepLink)}`;
+export async function buildQrCodeImageUrl(deepLink: string): Promise<string> {
+  return QRCode.toDataURL(deepLink, {
+    width: 300,
+    margin: 1,
+  });
 }
 
 export function isLocalOnlyHost(host: string): boolean {

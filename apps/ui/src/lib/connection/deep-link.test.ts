@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildConnectionDeepLink,
+  buildQrCodeImageUrl,
   isLocalOnlyHost,
   parseServerTarget,
   validateBundleId,
@@ -28,6 +29,17 @@ describe('connection deep-link utilities', () => {
     });
 
     expect(deepLink).toContain('server_ip=qa%20server');
+  });
+
+  it('generates a local QR code data URL', async () => {
+    const deepLink = buildConnectionDeepLink({
+      bundleId: 'com.example.app',
+      serverHost: 'qa-server.local',
+      serverPort: 9090,
+    });
+
+    const qrImageUrl = await buildQrCodeImageUrl(deepLink);
+    expect(qrImageUrl.startsWith('data:image/png;base64,')).toBe(true);
   });
 
   it('validates bundle id input', () => {
