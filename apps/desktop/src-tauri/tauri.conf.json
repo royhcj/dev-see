@@ -6,8 +6,8 @@
   "build": {
     "frontendDist": "../../ui/dist",
     "devUrl": "http://127.0.0.1:5173",
-    "beforeDevCommand": "pnpm --filter ui dev --host 127.0.0.1 --port 5173",
-    "beforeBuildCommand": "pnpm --filter ui build"
+    "beforeDevCommand": "VITE_RUNTIME_TARGET=desktop VITE_DESKTOP_SERVER_URL=http://localhost:9090 VITE_DESKTOP_WS_URL=ws://localhost:9090/ws pnpm --filter ui dev --host 127.0.0.1 --port 5173",
+    "beforeBuildCommand": "VITE_RUNTIME_TARGET=desktop VITE_DESKTOP_SERVER_URL=http://localhost:9090 VITE_DESKTOP_WS_URL=ws://localhost:9090/ws pnpm --filter ui build"
   },
   "app": {
     "windows": [

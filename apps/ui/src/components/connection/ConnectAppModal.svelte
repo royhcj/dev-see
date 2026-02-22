@@ -49,7 +49,8 @@
         serverHost,
         serverPort,
       });
-  $: qrImageUrl = deepLink ? buildQrCodeImageUrl(deepLink) : '';
+  $: shouldRenderQrImage = Boolean(deepLink) && !config.isTauriApp;
+  $: qrImageUrl = shouldRenderQrImage ? buildQrCodeImageUrl(deepLink) : '';
 
   $: if (qrImageUrl !== lastQrImageUrl) {
     qrLoadFailed = false;
@@ -193,6 +194,11 @@
           <h3>Scan QR Code</h3>
           {#if !deepLink}
             <p class="hint">Enter a valid Bundle ID to generate a QR code.</p>
+          {:else if config.isTauriApp}
+            <p class="hint">
+              QR preview is disabled in desktop builds to avoid external runtime dependencies.
+              Use "Copy Deep Link" and share it manually.
+            </p>
           {:else if qrLoadFailed}
             <p class="error">QR generation failed. Copy and share the deep link manually.</p>
           {:else}

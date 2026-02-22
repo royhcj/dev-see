@@ -1,29 +1,31 @@
 /**
  * Configuration Module - Runtime Environment Detection
  *
- * This module detects whether the app is running in:
- * 1. Tauri Desktop App - uses embedded server
- * 2. Browser (Development) - connects to separate server
- * 3. Browser (Production) - uses environment variables
- *
- * Why we need this:
- * - Tauri apps bundle the server, so they use localhost
- * - Browser apps in dev connect to a separate server process
- * - Production builds may use different URLs
- *
- * Vite's import.meta.env provides environment variables at build time:
- * - import.meta.env.MODE: 'development' or 'production'
- * - import.meta.env.VITE_*: custom environment variables
+ * This module supports explicit desktop runtime wiring via env vars while
+ * preserving existing browser behavior.
  */
 
-/**
- * Detects if the app is running inside Tauri
- * Tauri injects a __TAURI__ global object when running as a desktop app
- */
-export function isTauri(): boolean {
-  // Check if running in Tauri environment
-  // @ts-expect-error - __TAURI__ is injected by Tauri at runtime
-  return typeof window !== 'undefined' && window.__TAURI__ !== undefined;
+const DEFAULT_DESKTOP_SERVER_URL = 'http://localhost:9090';
+const DEFAULT_DESKTOP_WS_URL = 'ws://localhost:9090/ws';
+const DEFAULT_DEV_SERVER_URL = 'http://localhost:9090';
+const DEFAULT_DEV_WS_URL = 'ws://localhost:9090/ws';
+
+export type RuntimeTarget = 'desktop' | 'web';
+
+interface RuntimeEnv {
+  MODE?: string;
+  VITE_RUNTIME_TARGET?: string;
+  VITE_SERVER_URL?: string;
+  VITE_WS_URL?: string;
+  VITE_DESKTOP_SERVER_URL?: string;
+  VITE_DESKTOP_WS_URL?: string;
+}
+
+interface ResolveConfigInput {
+  env: RuntimeEnv;
+  isTauriApp: boolean;
+  windowOrigin: string;
+  windowHost: string;
 }
 
 /**
@@ -34,55 +36,116 @@ interface AppConfig {
   wsUrl: string;
   isDevelopment: boolean;
   isTauriApp: boolean;
+  runtimeTarget: RuntimeTarget;
 }
 
-/**
- * Gets the application configuration based on the current environment
- */
-export function getConfig(): AppConfig {
-  const isDevelopment = import.meta.env.MODE === 'development';
-  const isTauriApp = isTauri();
+type WindowWithTauri = Window & { __TAURI__?: unknown };
 
-  // Default URLs for different environments
+/**
+ * Detects if the app is running inside Tauri.
+ * Tauri injects a __TAURI__ global object when running as a desktop app.
+ */
+export function isTauri(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    (window as WindowWithTauri).__TAURI__ !== undefined
+  );
+}
+
+function detectRuntimeTarget(env: RuntimeEnv, isTauriApp: boolean): RuntimeTarget {
+  if (env.VITE_RUNTIME_TARGET === 'desktop') {
+    return 'desktop';
+  }
+  if (env.VITE_RUNTIME_TARGET === 'web') {
+    return 'web';
+  }
+  return isTauriApp ? 'desktop' : 'web';
+}
+
+function trimOrUndefined(value?: string): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
+
+function deriveWsUrl(serverUrl: string): string | undefined {
+  try {
+    const server = new URL(serverUrl);
+    server.protocol = server.protocol === 'https:' ? 'wss:' : 'ws:';
+    server.pathname = '/ws';
+    server.search = '';
+    server.hash = '';
+    return server.toString();
+  } catch {
+    return undefined;
+  }
+}
+
+export function resolveConfig(input: ResolveConfigInput): AppConfig {
+  const isDevelopment = input.env.MODE === 'development';
+  const runtimeTarget = detectRuntimeTarget(input.env, input.isTauriApp);
+
   let serverUrl: string;
   let wsUrl: string;
 
-  if (isTauriApp) {
-    // Tauri app: server runs embedded on localhost
-    serverUrl = 'http://localhost:9090';
-    wsUrl = 'ws://localhost:9090/ws';
+  if (runtimeTarget === 'desktop') {
+    serverUrl =
+      trimOrUndefined(input.env.VITE_DESKTOP_SERVER_URL) ??
+      trimOrUndefined(input.env.VITE_SERVER_URL) ??
+      DEFAULT_DESKTOP_SERVER_URL;
+    wsUrl =
+      trimOrUndefined(input.env.VITE_DESKTOP_WS_URL) ??
+      trimOrUndefined(input.env.VITE_WS_URL) ??
+      deriveWsUrl(serverUrl) ??
+      DEFAULT_DESKTOP_WS_URL;
   } else if (isDevelopment) {
-    // Development mode: use environment variables or defaults
-    serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:9090';
-    wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:9090/ws';
+    // Keep existing browser development behavior.
+    serverUrl = trimOrUndefined(input.env.VITE_SERVER_URL) ?? DEFAULT_DEV_SERVER_URL;
+    wsUrl = trimOrUndefined(input.env.VITE_WS_URL) ?? DEFAULT_DEV_WS_URL;
   } else {
-    // Production mode: must use environment variables
-    // These are set at build time in .env.production
-    serverUrl = import.meta.env.VITE_SERVER_URL || window.location.origin;
-    wsUrl = import.meta.env.VITE_WS_URL || `ws://${window.location.host}/ws`;
+    // Keep existing browser production behavior.
+    serverUrl = trimOrUndefined(input.env.VITE_SERVER_URL) ?? input.windowOrigin;
+    wsUrl = trimOrUndefined(input.env.VITE_WS_URL) ?? `ws://${input.windowHost}/ws`;
   }
 
   return {
     serverUrl,
     wsUrl,
     isDevelopment,
-    isTauriApp,
+    isTauriApp: runtimeTarget === 'desktop',
+    runtimeTarget,
   };
 }
 
 /**
- * Global configuration instance
- * Initialized once when the module is imported
+ * Gets the application configuration based on the current environment.
+ */
+export function getConfig(): AppConfig {
+  const isTauriApp = isTauri();
+  const windowOrigin =
+    typeof window !== 'undefined' ? window.location.origin : 'http://localhost';
+  const windowHost =
+    typeof window !== 'undefined' ? window.location.host : 'localhost';
+
+  return resolveConfig({
+    env: import.meta.env as RuntimeEnv,
+    isTauriApp,
+    windowOrigin,
+    windowHost,
+  });
+}
+
+/**
+ * Global configuration instance.
  */
 export const config = getConfig();
 
 /**
- * Utility to log configuration (useful for debugging)
+ * Utility to log configuration (useful for debugging).
  */
 export function logConfig() {
-  console.log('🔧 App Configuration:', {
+  console.log('App Configuration:', {
     mode: config.isDevelopment ? 'Development' : 'Production',
-    platform: config.isTauriApp ? 'Tauri Desktop' : 'Browser',
+    target: config.runtimeTarget,
     serverUrl: config.serverUrl,
     wsUrl: config.wsUrl,
   });

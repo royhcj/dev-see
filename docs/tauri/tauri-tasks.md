@@ -49,11 +49,18 @@ ls -la "$HOME/Library/MobileDevice/Provisioning Profiles"
 
 ## 2. Frontend Desktop Wiring
 
-- [ ] Add desktop runtime config for API base URL and WebSocket URL.
-- [ ] Ensure desktop mode points to localhost backend.
-- [ ] Ensure web mode behavior remains unchanged.
-- [ ] Verify frontend loads with no external runtime dependency (CDN-free packaged app).
+- [x] Add desktop runtime config for API base URL and WebSocket URL.
+- [x] Ensure desktop mode points to localhost backend.
+- [x] Ensure web mode behavior remains unchanged.
+- [x] Verify frontend loads with no external runtime dependency (CDN-free packaged app).
 - [ ] Smoke test core UI flow inside Tauri window.
+
+Verification notes (2026-02-22):
+
+- Desktop runtime env wiring validated via `cargo tauri build --debug --bundles app` (Tauri `beforeBuildCommand` injects `VITE_RUNTIME_TARGET=desktop`, desktop API URL, and desktop WS URL).
+- UI runtime behavior validated with `pnpm --filter ui test --run` (`src/lib/config.test.ts` covers desktop localhost defaults and unchanged web behavior).
+- Desktop dev launch smoke validated via `timeout 35 pnpm --filter desktop dev` (process reached `Running target/debug/app` before timeout).
+- Interactive in-window core flow (tab switching, live logs, spec viewer actions) remains a manual check.
 
 ## 3. Backend Build and Sidecar Packaging
 
