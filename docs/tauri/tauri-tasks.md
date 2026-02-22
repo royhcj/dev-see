@@ -5,11 +5,39 @@
 
 ## 0. Prerequisites
 
-- [ ] Confirm local Node.js and pnpm versions match project requirements.
-- [ ] Install and verify Rust toolchain (`rustc`, `cargo`).
-- [ ] Install and verify Tauri CLI.
-- [ ] Confirm Xcode + command line tools are installed.
-- [ ] Confirm Apple Developer certificates/profiles for App Store distribution are available.
+- [x] Confirm local Node.js and pnpm versions match project requirements.
+- [x] Install and verify Rust toolchain (`rustc`, `cargo`).
+- [x] Install and verify Tauri CLI.
+- [x] Confirm Xcode + command line tools are installed.
+- [x] Confirm Apple Developer certificates/profiles for App Store distribution are available.
+
+Manual setup and verification commands:
+
+```bash
+# 1) Confirm Node.js + pnpm (project currently pins pnpm in packages/server/package.json)
+node -v
+pnpm -v
+cat /Users/roy/dev/projects/dev-see/packages/server/package.json | rg packageManager
+
+# 2) Install Rust toolchain (rustc + cargo)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source "$HOME/.cargo/env"
+rustc -V
+cargo -V
+
+# 3) Install and verify Tauri CLI
+cargo install tauri-cli --locked
+cargo tauri -V
+
+# 4) Confirm Xcode + command line tools
+xcodebuild -version
+xcode-select -p
+pkgutil --pkg-info=com.apple.pkg.CLTools_Executables
+
+# 5) Confirm Apple certificates + provisioning profiles
+security find-identity -v -p codesigning
+ls -la "$HOME/Library/MobileDevice/Provisioning Profiles"
+```
 
 ## 1. Tauri Project Scaffold
 
